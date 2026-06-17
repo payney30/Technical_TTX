@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CrowdStrike Forensic Finding — Inject 14</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #f3f4f6;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 13px;
+    color: #1a1a1a;
+    min-height: 100vh;
+    padding: 0 0 40px;
+  }
+
+  /* ── Outlook-style top chrome ── */
+  .app-bar {
+    background: #0f3c78;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 10px;
+  }
+  .app-logo { display: flex; align-items: center; gap: 7px; }
+  .app-logo svg { width: 20px; height: 20px; }
+  .app-logo-text { color: #fff; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; }
+  .app-nav { display: flex; gap: 0; height: 42px; margin-left: 10px; }
+  .app-nav-item {
+    display: flex; align-items: center;
+    padding: 0 13px;
+    color: rgba(255,255,255,0.75);
+    font-size: 12px;
+    border-bottom: 2px solid transparent;
+    cursor: default;
+    white-space: nowrap;
+  }
+  .app-nav-item.active { color: #fff; border-bottom-color: #fff; }
+  .app-nav-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .avatar-circle {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #1a5fa8; border: 1.5px solid rgba(255,255,255,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #fff;
+  }
+
+  /* ── Reading pane ── */
+  .reading-pane {
+    max-width: 820px;
+    margin: 16px auto;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  /* ── Email header ── */
+  .email-header {
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .urgency-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-radius: 4px;
+    padding: 6px 10px;
+    margin-bottom: 14px;
+    font-size: 12px;
+    color: #991b1b;
+    font-weight: 500;
+  }
+  .urgency-dot { width: 7px; height: 7px; border-radius: 50%; background: #dc2626; flex-shrink: 0; }
+  .email-subject {
+    font-size: 17px;
+    font-weight: 600;
+    color: #111;
+    margin-bottom: 14px;
+    line-height: 1.35;
+  }
+  .cs-badge {
+    display: inline-block;
+    background: #fee2e2;
+    color: #991b1b;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+    border: 1px solid #fca5a5;
+    letter-spacing: 0.04em;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .meta-table { width: 100%; border-collapse: collapse; }
+  .meta-table tr { border-bottom: 1px solid #f3f4f6; }
+  .meta-table tr:last-child { border-bottom: none; }
+  .meta-table td { padding: 4px 0; font-size: 12px; vertical-align: top; }
+  .meta-key { color: #6b7280; width: 46px; padding-right: 10px; white-space: nowrap; }
+  .meta-val { color: #1a1a1a; }
+  .meta-val .sender-name { font-weight: 600; }
+  .meta-val .sender-email { color: #6b7280; margin-left: 4px; }
+
+  /* ── Email body ── */
+  .email-body {
+    padding: 20px 22px;
+    font-size: 13px;
+    color: #1a1a1a;
+    line-height: 1.75;
+  }
+  .email-body p { margin-bottom: 14px; }
+
+  /* ── Single finding card ── */
+  .finding-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 20px 0;
+  }
+  .finding-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: #fef2f2;
+    border-bottom: 1px solid #fca5a5;
+  }
+  .finding-title { font-size: 13px; font-weight: 600; color: #111; }
+  .finding-sev {
+    margin-left: auto;
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 3px;
+    letter-spacing: 0.04em;
+    background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5;
+  }
+  .finding-body {
+    padding: 12px 14px;
+    font-size: 12px;
+    color: #374151;
+    line-height: 1.75;
+  }
+  .finding-body p { margin-bottom: 8px; }
+  .finding-body p:last-child { margin-bottom: 0; }
+  .kv-block {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 3px;
+    padding: 10px 12px;
+    margin: 10px 0;
+  }
+  .kv-row { display: flex; gap: 10px; padding: 4px 0; border-bottom: 1px solid #f3f4f6; font-size: 12px; }
+  .kv-row:last-child { border-bottom: none; }
+  .kv-key { color: #6b7280; width: 170px; flex-shrink: 0; }
+  .kv-val { color: #1a1a1a; font-weight: 500; font-family: "SFMono-Regular", Consolas, monospace; font-size: 11px; }
+  .kv-val.plain { font-family: inherit; font-size: 12px; }
+  .kv-val.danger { color: #b91c1c; }
+
+  /* ── Decision box ── */
+  .decision-box {
+    margin: 6px 0 20px;
+    border: 1.5px solid #dc2626;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .decision-head {
+    background: #dc2626;
+    padding: 8px 14px;
+    font-size: 12px; font-weight: 700; color: #fff; letter-spacing: 0.03em;
+  }
+  .decision-body {
+    background: #fef2f2;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: #1a1a1a;
+    line-height: 1.75;
+  }
+  .decision-body ol { padding-left: 18px; }
+  .decision-body li { margin-bottom: 6px; }
+  .decision-body li:last-child { margin-bottom: 0; }
+
+  /* ── Signature ── */
+  .sig-divider { border: none; border-top: 1px solid #e5e7eb; margin: 20px 0 16px; }
+  .sig { font-size: 12px; color: #374151; line-height: 1.8; }
+  .sig-name { font-size: 13px; font-weight: 700; color: #111; }
+  .sig-cs { color: #dc2626; font-weight: 600; }
+  .sig-contact { color: #1d4ed8; }
+
+  /* ── Reply bar ── */
+  .reply-bar {
+    border-top: 1px solid #e5e7eb;
+    padding: 10px 22px;
+    display: flex; gap: 8px;
+  }
+  .reply-btn {
+    font-size: 12px; font-weight: 500;
+    padding: 5px 14px; border-radius: 3px;
+    cursor: default; border: 1px solid;
+  }
+  .reply-btn-primary { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+  .reply-btn-secondary { background: #fff; border-color: #d1d5db; color: #374151; }
+</style>
+</head>
+<body>
+
+<!-- App bar -->
+<div class="app-bar">
+  <div class="app-logo">
+    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="20" height="20" rx="3" fill="#1a5fa8"/>
+      <path d="M4 10.5l3.5 3.5 8.5-8" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="app-logo-text">Outlook</span>
+  </div>
+  <div class="app-nav">
+    <div class="app-nav-item">Mail</div>
+    <div class="app-nav-item">Calendar</div>
+    <div class="app-nav-item">People</div>
+  </div>
+  <div class="app-nav-right">
+    <div class="avatar-circle">JH</div>
+  </div>
+</div>
+
+<!-- Reading pane -->
+<div class="reading-pane">
+
+  <!-- Email header -->
+  <div class="email-header">
+
+    <div class="urgency-strip">
+      <div class="urgency-dot"></div>
+      ACTIVE INCIDENT — FORENSIC FINDING REQUIRES IMMEDIATE RESPONSE
+    </div>
+
+    <div class="email-subject">
+      Forensic Finding — Unauthorized Privilege Escalation Identified in Active Directory Logs
+      <span class="cs-badge">CONFIDENTIAL</span>
+    </div>
+
+    <table class="meta-table">
+      <tr>
+        <td class="meta-key">From</td>
+        <td class="meta-val">
+          <span class="sender-name">Ryan Kowalski</span>
+          <span class="sender-email">&lt;r.kowalski@crowdstrike.com&gt;</span>
+          &nbsp;·&nbsp; Senior Incident Response Consultant, CrowdStrike Services
+        </td>
+      </tr>
+      <tr>
+        <td class="meta-key">To</td>
+        <td class="meta-val">James Huntley &lt;j.huntley@cushwake.com&gt;; Iniobong Isang &lt;i.isang@cushwake.com&gt;</td>
+      </tr>
+      <tr>
+        <td class="meta-key">CC</td>
+        <td class="meta-val">CrowdStrike IR Team &lt;ir-engagement@crowdstrike.com&gt;</td>
+      </tr>
+      <tr>
+        <td class="meta-key">Sent</td>
+        <td class="meta-val">Thursday, [Date], 12:04 PM CST</td>
+      </tr>
+      <tr>
+        <td class="meta-key">Ref</td>
+        <td class="meta-val">Engagement: CW-IR-2024-0441 &nbsp;·&nbsp; Ticket: INC0047821</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Email body -->
+  <div class="email-body">
+
+    <p>James, Ini,</p>
+
+    <p>Following our review of the Active Directory security event logs provided yesterday, we have identified a finding that we want to bring to your attention immediately.</p>
+
+    <p>Our analysis of the logs has uncovered evidence that a standard user account was granted Domain Admin privileges without any corresponding change management record, approval workflow, or provisioning ticket. This is consistent with a threat actor establishing persistence within your environment.</p>
+
+    <div class="finding-card">
+      <div class="finding-head">
+        <div class="finding-title">Unauthorized privilege escalation — standard account added to Domain Admins group</div>
+        <span class="finding-sev">CRITICAL</span>
+      </div>
+      <div class="finding-body">
+        <p>Review of Windows Security Event logs from your domain controllers identified the following activity. Event ID 4728 (a member was added to a security-enabled global group) was recorded for the account below, with Domain Admins as the target group. The account in question is a standard user account with no prior administrative role.</p>
+
+        <div class="kv-block">
+          <div class="kv-row"><span class="kv-key">Account escalated</span><span class="kv-val">svc_rptengine</span></div>
+          <div class="kv-row"><span class="kv-key">Group assigned to</span><span class="kv-val danger">Domain Admins</span></div>
+          <div class="kv-row"><span class="kv-key">Event ID</span><span class="kv-val">4728</span></div>
+          <div class="kv-row"><span class="kv-key">Timestamp</span><span class="kv-val">Tuesday, [Date], 02:17:43 UTC</span></div>
+          <div class="kv-row"><span class="kv-key">Performed by</span><span class="kv-val">gkellerman</span></div>
+          <div class="kv-row"><span class="kv-key">Domain controller</span><span class="kv-val">CW-CHI-SRV-DC03</span></div>
+          <div class="kv-row"><span class="kv-key">Change ticket on file</span><span class="kv-val danger plain">None found</span></div>
+        </div>
+
+        <p>The escalation occurred at 02:17 UTC on Tuesday — outside of business hours and with no corresponding change management record. The account <span style="font-family: monospace; font-size: 11px; color: #1d4ed8;">gkellerman</span> was used to perform the escalation, which is consistent with the compromised credential activity identified earlier in this engagement.</p>
+
+        <p>We have not yet determined the full extent of activity performed under the <span style="font-family: monospace; font-size: 11px; color: #1d4ed8;">svc_rptengine</span> account since escalation. That analysis is ongoing.</p>
+      </div>
+    </div>
+
+    <div class="decision-box">
+      <div class="decision-head">
+        Actions Required — Please Advise Before We Proceed
+      </div>
+      <div class="decision-body">
+        <ol>
+          <li><strong>Can you confirm</strong> whether <span style="font-family: monospace; font-size: 11px;">svc_rptengine</span> is a legitimate account in your environment, and whether any change request exists for this escalation?</li>
+          <li><strong>Do we have authorization</strong> to suspend the account and remove it from Domain Admins? We recommend doing this in a coordinated way to preserve logging visibility before any session is terminated.</li>
+          <li><strong>Has your legal and leadership team been notified</strong> of the escalation finding, in light of the extortion demand received this morning?</li>
+        </ol>
+      </div>
+    </div>
+
+    <p>We are available for a call immediately. Please reach me directly at the number below — we would like to coordinate next steps with you before taking any action in the environment.</p>
+
+    <hr class="sig-divider">
+
+    <div class="sig">
+      <div class="sig-name">Ryan Kowalski</div>
+      <div>Senior Incident Response Consultant</div>
+      <div class="sig-cs">CrowdStrike Services</div>
+      <div style="margin-top: 4px;">
+        T: <span class="sig-contact">+1 (720) 555-0193</span>
+        &nbsp;·&nbsp;
+        <span class="sig-contact">r.kowalski@crowdstrike.com</span>
+      </div>
+      <div style="margin-top: 4px; color: #9ca3af; font-size: 11px;">Engagement ref: CW-IR-2024-0441 &nbsp;·&nbsp; This message and its attachments are confidential and intended solely for the named recipients.</div>
+    </div>
+
+  </div>
+
+  <!-- Reply bar -->
+  <div class="reply-bar">
+    <div class="reply-btn reply-btn-primary">Reply</div>
+    <div class="reply-btn reply-btn-secondary">Reply All</div>
+    <div class="reply-btn reply-btn-secondary">Forward</div>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,241 @@
+
+<style>
+  .doc { max-width: 700px; font-family: var(--font-sans); color: var(--color-text-primary); padding: 1rem 0 2rem; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: var(--border-radius-md); }
+  .badge-coral  { background: #FAECE7; color: #712B13; }
+  .badge-info   { background: #E6F1FB; color: #0C447C; }
+  .badge-gray   { background: #F1EFE8; color: #444441; }
+  .badge-warn   { background: #FAEEDA; color: #633806; }
+  .badge-green  { background: #EAF3DE; color: #27500A; }
+  .meta-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .section-head { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.07em; margin: 2rem 0 0.75rem; }
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+  .card-title { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); margin: 0 0 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .divider { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 1.5rem 0; }
+  h1.title { font-size: 20px; font-weight: 500; margin: 0 0 0.2rem; }
+  p.subtitle { font-size: 14px; color: var(--color-text-secondary); margin: 0 0 1rem; }
+  .prod-note { border-left: 2px solid #F0997B; padding: 6px 10px; font-size: 12px; color: var(--color-text-secondary); line-height: 1.6; margin-top: 8px; }
+  .prod-note strong { font-weight: 500; color: var(--color-text-primary); }
+  .info-note { border-left: 2px solid #B5D4F4; padding: 6px 10px; font-size: 12px; color: var(--color-text-secondary); line-height: 1.6; margin-top: 8px; }
+  .info-note strong { font-weight: 500; color: var(--color-text-primary); }
+
+  /* Email mock */
+  .email-mock {
+    background: #fff;
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    margin-bottom: 1rem;
+    font-size: 13px;
+  }
+  .email-chrome {
+    background: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .email-dots { display: flex; gap: 5px; }
+  .edot { width: 10px; height: 10px; border-radius: 50%; }
+  .edot.r { background: #ff5f57; }
+  .edot.y { background: #febc2e; }
+  .edot.g { background: #28c840; }
+  .email-app-title { font-size: 11px; color: #888; margin: 0 auto; }
+
+  .email-header {
+    background: #fafafa;
+    border-bottom: 1px solid #ebebeb;
+    padding: 12px 16px;
+  }
+  .email-field { display: flex; gap: 10px; margin-bottom: 6px; font-size: 12px; line-height: 1.5; }
+  .email-field:last-child { margin-bottom: 0; }
+  .email-label { color: #999; width: 46px; flex-shrink: 0; text-align: right; font-size: 11px; padding-top: 1px; }
+  .email-val { color: #333; }
+  .email-val.subject { font-weight: 500; color: #111; }
+  .email-val.addr { color: #1a73e8; }
+
+  .email-body {
+    padding: 20px 20px 24px;
+    color: #222;
+    line-height: 2;
+    font-size: 13px;
+    white-space: pre-wrap;
+    font-family: 'Courier New', monospace;
+    background: white;
+  }
+
+  .email-footer {
+    background: #fafafa;
+    border-top: 1px solid #ebebeb;
+    padding: 8px 16px;
+    font-size: 10px;
+    color: #aaa;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* Variant tabs */
+  .variant-tabs { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .vtab {
+    padding: 4px 12px; border-radius: 20px; font-size: 12px;
+    cursor: pointer; border: 1px solid var(--color-border-tertiary);
+    color: var(--color-text-secondary); background: var(--color-background-secondary);
+    transition: all 0.15s;
+  }
+  .vtab.active { background: #FAECE7; color: #712B13; border-color: #F0997B; font-weight: 500; }
+
+  /* Decision tree */
+  .dtree { font-size: 13px; line-height: 1.8; }
+  .dtree-trigger { font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+  .dtree-action { color: var(--color-text-secondary); padding-left: 16px; border-left: 2px solid var(--color-border-tertiary); margin-bottom: 12px; }
+  .dtree-action strong { color: var(--color-text-primary); font-weight: 500; }
+
+  /* Trigger grid */
+  .trigger-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px; line-height: 1.6; }
+  .trigger-item { display: flex; gap: 8px; }
+</style>
+
+<div class="doc">
+  <h1 class="title">Threat actor email — live inject artifact</h1>
+  <p class="subtitle">Follow-up response from cw-resolution@proton.me &nbsp;·&nbsp; Triggered when a participant makes contact</p>
+  <div class="meta-row">
+    <span class="badge badge-coral">Facilitator-triggered inject</span>
+    <span class="badge badge-info">Proton Mail → participant email</span>
+    <span class="badge badge-warn">Send only when contact is made</span>
+    <span class="badge badge-gray">Exercise use only</span>
+  </div>
+
+  <div class="section-head">How this inject works</div>
+  <div class="card">
+    <div style="font-size:14px;line-height:1.8;">
+      When a participant sends an email to <strong>cw-resolution@proton.me</strong> during the exercise, a facilitator monitoring the inbox sends one of the response variants below. The reply arrives in the participant's inbox in real time — turning a passive video inject into a live, two-way exchange.<br><br>
+      The response should arrive within <strong>3–5 minutes</strong> of the participant's email — fast enough to feel automated or monitored, slow enough to feel like a human reviewed it.
+    </div>
+  </div>
+
+  <hr class="divider">
+  <div class="section-head">Primary response — first contact</div>
+  <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:12px;">Send this when a participant makes first contact. Cold, brief, process-oriented.</p>
+
+  <!-- Email mock -->
+  <div class="email-mock">
+    <div class="email-chrome">
+      <div class="email-dots"><div class="edot r"></div><div class="edot y"></div><div class="edot g"></div></div>
+      <div class="email-app-title">Proton Mail</div>
+    </div>
+    <div class="email-header">
+      <div class="email-field">
+        <span class="email-label">From</span>
+        <span class="email-val addr">cw-resolution@proton.me</span>
+      </div>
+      <div class="email-field">
+        <span class="email-label">To</span>
+        <span class="email-val addr">[participant email]</span>
+      </div>
+      <div class="email-field">
+        <span class="email-label">Subject</span>
+        <span class="email-val subject">RE: CW-2024-EXT-001</span>
+      </div>
+      <div class="email-field">
+        <span class="email-label">Date</span>
+        <span class="email-val">[current exercise time]</span>
+      </div>
+    </div>
+    <div class="email-body">Reference CW-2024-EXT-001 acknowledged.
+
+Clock is running. Do not lose track of the upload timestamp.
+
+To proceed:
+
+  1. Confirm your authority to negotiate on behalf of C&W leadership.
+  2. Confirm you have reviewed the proof of compromise in full.
+  3. Confirm you are not involving law enforcement at this time.
+
+Once confirmed, payment instructions will follow within the hour.
+
+Do not reply more than once to this address before completing the
+above steps. Additional messages will delay the process.
+
+—</div>
+    <div class="email-footer">
+      <span>Sent via Proton Mail — end-to-end encrypted</span>
+      <span>No tracking &nbsp;·&nbsp; No logs</span>
+    </div>
+  </div>
+  <div class="prod-note"><strong>Why these three confirmation steps:</strong> Each one is a discussion trigger in its own right. Step 1 forces the question of who actually has authority. Step 2 implies they should have reviewed evidence they may not have fully processed yet. Step 3 is the most explosive — it directly asks participants to confirm they are not involving law enforcement, which immediately raises the "do we tell the FBI/NCA?" debate.</div>
+
+  <hr class="divider">
+  <div class="section-head">Variant responses — facilitator decision tree</div>
+  <p style="font-size:13px;color:var(--color-text-secondary);margin-bottom:14px;">Use these based on how participants respond to the primary email.</p>
+
+  <div class="dtree">
+
+    <div class="dtree-trigger">If participant says they are involving law enforcement →</div>
+    <div class="dtree-action">
+      <strong>Send:</strong> "Noted. The timeline does not change. Every hour spent on that path is an hour not spent resolving this. The data goes public on schedule regardless of who you have called. CW-2024-EXT-001."
+      <div class="info-note" style="margin-top:6px;"><strong>Effect:</strong> Tests whether participants believe the threat is credible enough to change their law enforcement decision. Also raises the question of whether notifying law enforcement constitutes a breach of the implicit negotiation.</div>
+    </div>
+
+    <div class="dtree-trigger">If participant asks to see more proof or challenges the validity of the breach →</div>
+    <div class="dtree-action">
+      <strong>Send:</strong> "Further proof is not part of this process. You have the video. You have the schema. Run a query against your JDE access logs for the window 2024-05-22 02:50 to 03:20 UTC against account JDEINT_FIN. That will answer your question faster than I will. CW-2024-EXT-001."
+      <div class="info-note" style="margin-top:6px;"><strong>Effect:</strong> Extremely high impact. Naming the specific account and time window makes the breach feel real and immediately sends the technical participants toward their logs. It also demonstrates the threat actor has operational knowledge — they know the account name.</div>
+    </div>
+
+    <div class="dtree-trigger">If participant asks for the payment amount →</div>
+    <div class="dtree-action">
+      <strong>Send:</strong> "Amount is communicated after step 3 is confirmed. Confirm you are not involving law enforcement. CW-2024-EXT-001."
+      <div class="info-note" style="margin-top:6px;"><strong>Effect:</strong> Keeps the pressure on the law enforcement question. Also realistic — real extortion actors rarely lead with the number.</div>
+    </div>
+
+    <div class="dtree-trigger">If participant asks for more time beyond 72 hours →</div>
+    <div class="dtree-action">
+      <strong>Send:</strong> "The timeline is fixed. It was fixed when the video was uploaded. We are not in a negotiation about the timeline. We are in a negotiation about the data. CW-2024-EXT-001."
+      <div class="info-note" style="margin-top:6px;"><strong>Effect:</strong> Reinforces urgency. The distinction between "negotiating about the timeline" and "negotiating about the data" is a subtle but realistic framing that experienced participants will notice.</div>
+    </div>
+
+    <div class="dtree-trigger">If participant goes silent after first contact (no follow-up within 15 minutes) →</div>
+    <div class="dtree-action">
+      <strong>Send:</strong> "We note you have not completed the confirmation steps. The clock does not pause for internal deliberation. Forty-eight hours remain. CW-2024-EXT-001."
+      <div class="info-note" style="margin-top:6px;"><strong>Effect:</strong> A proactive escalation inject. Use this if the room has gone deep into internal discussion and you want to re-introduce external pressure. Adjust the "hours remaining" to match where you are in the exercise timeline.</div>
+    </div>
+
+  </div>
+
+  <hr class="divider">
+  <div class="section-head">Facilitator guidance</div>
+  <div class="card">
+    <div class="card-title">Before the session</div>
+    <div style="font-size:13px;line-height:1.8;">
+      • Set up Proton Mail on a facilitator device — phone works well so responses can be sent discreetly without disrupting the session<br>
+      • Brief co-facilitators on the response variants so anyone can send if the lead is occupied<br>
+      • Agree a signal between facilitators for "email received — sending response now" so the room doesn't see the facilitator typing<br>
+      • Print or screenshot this decision tree for quick reference during the session
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">During the session</div>
+    <div style="font-size:13px;line-height:1.8;">
+      • Monitor the Proton Mail inbox on a separate device throughout<br>
+      • Wait 3–5 minutes before responding — instant replies feel automated, which is fine, but a slight delay feels more human and considered<br>
+      • Never break character in the email — even if a participant writes something that clearly signals they know it's an exercise<br>
+      • If two participants email independently, send the primary response to both — then use the ensuing "who authorised that contact?" discussion as an inject in itself<br>
+      • Cap email exchanges at 3 rounds maximum — after that redirect discussion back to the room
+    </div>
+  </div>
+
+  <div class="card" style="border-color:#F5C4B3;">
+    <div class="card-title" style="color:#993C1D;">Discussion triggers — this inject</div>
+    <div class="trigger-grid">
+      <div class="trigger-item"><i class="ti ti-point-filled" style="font-size:10px;color:#993C1D;margin-top:4px;flex-shrink:0;"></i><span>Who has authority to make first contact — and did they authorise it?</span></div>
+      <div class="trigger-item"><i class="ti ti-point-filled" style="font-size:10px;color:#993C1D;margin-top:4px;flex-shrink:0;"></i><span>Does contacting them constitute beginning negotiations?</span></div>
+      <div class="trigger-item"><i class="ti ti-point-filled" style="font-size:10px;color:#993C1D;margin-top:4px;flex-shrink:0;"></i><span>Can we confirm we are not involving law enforcement — and should we?</span></div>
+      <div class="trigger-item"><i class="ti ti-point-filled" style="font-size:10px;color:#993C1D;margin-top:4px;flex-shrink:0;"></i><span>Is the JDEINT_FIN reference in the proof email credible evidence?</span></div>
+      <div class="trigger-item"><i class="ti ti-point-filled" style="font-size:10px;color:#993C1D;margin-top:4px;flex-shrink:0;"></i><span>Do we have legal cover to pay if we decide to?</span></div>
+      <div class="trigger-item"><i class="ti ti-point-filled" style="font-size:10px;color:#993C1D;margin-top:4px;flex-shrink:0;"></i><span>Who in the UK and US needs to know this contact happened?</span></div>
+    </div>
+  </div>
+
+</div>

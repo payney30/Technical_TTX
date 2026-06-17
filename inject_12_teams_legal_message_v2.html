@@ -1,0 +1,134 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; }
+  .teams-shell { background: #f5f5f5; border-radius: var(--border-radius-lg); overflow: hidden; border: 0.5px solid #d0d0d0; }
+  .teams-titlebar { background: #464775; padding: 0 16px; height: 40px; display: flex; align-items: center; justify-content: space-between; }
+  .teams-titlebar-left { display: flex; align-items: center; gap: 10px; }
+  .teams-logo { color: #fff; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+  .teams-logo-icon { background: #6264a7; border-radius: 4px; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+  .teams-logo-icon svg { width: 13px; height: 13px; fill: #fff; }
+  .teams-titlebar-right { display: flex; gap: 14px; }
+  .teams-titlebar-right span { color: rgba(255,255,255,0.6); font-size: 13px; cursor: default; }
+  .teams-body { display: flex; height: 500px; }
+  .teams-sidebar { width: 56px; background: #464775; display: flex; flex-direction: column; align-items: center; padding: 12px 0; gap: 20px; }
+  .sidebar-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: default; }
+  .sidebar-icon i { font-size: 18px; color: rgba(255,255,255,0.55); }
+  .sidebar-icon.active { background: rgba(255,255,255,0.15); }
+  .sidebar-icon.active i { color: #fff; }
+  .teams-main { flex: 1; display: flex; flex-direction: column; background: #fff; }
+  .chat-header { padding: 10px 16px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; background: #fff; }
+  .chat-header-left { display: flex; align-items: center; gap: 10px; }
+  .group-avatar { width: 36px; height: 36px; border-radius: 50%; background: #e8e8f0; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .group-avatar i { font-size: 18px; color: #464775; }
+  .chat-header-name { font-size: 14px; font-weight: 500; color: #1a1a2e; }
+  .member-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 3px; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; background: #ededf4; border-radius: 3px; padding: 2px 7px; font-size: 11px; color: #464775; }
+  .chat-header-tabs { display: flex; }
+  .chat-tab { padding: 8px 14px; font-size: 13px; color: #666; cursor: default; border-bottom: 2px solid transparent; }
+  .chat-tab.active { color: #464775; border-bottom: 2px solid #464775; font-weight: 500; }
+  .chat-messages { flex: 1; overflow: hidden; padding: 16px; display: flex; flex-direction: column; background: #fff; }
+  .date-divider { text-align: center; margin: 0 0 16px; position: relative; }
+  .date-divider::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 0.5px; background: #e0e0e0; }
+  .date-divider span { font-size: 11px; color: #888; background: #fff; padding: 0 10px; position: relative; z-index: 1; }
+  .msg-row { display: flex; gap: 10px; align-items: flex-start; }
+  .msg-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; margin-top: 2px; }
+  .av-rebecca { background: #c14c4c; color: #fff; }
+  .msg-content { flex: 1; }
+  .msg-meta { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+  .msg-name { font-size: 13px; font-weight: 500; color: #1a1a2e; }
+  .msg-title { font-size: 11px; color: #888; }
+  .msg-time { font-size: 11px; color: #aaa; }
+  .msg-bubble { font-size: 13px; color: #1a1a2e; line-height: 1.6; }
+  .msg-bubble p { margin-bottom: 7px; }
+  .msg-bubble p:last-child { margin-bottom: 0; }
+  .chat-input-area { border-top: 1px solid #e0e0e0; padding: 10px 14px; background: #fff; }
+  .chat-input-bar { border: 1px solid #d0d0d8; border-radius: 6px; padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; }
+  .chat-input-placeholder { font-size: 13px; color: #bbb; }
+  .chat-input-icons { display: flex; gap: 12px; }
+  .chat-input-icons i { font-size: 16px; color: #aaa; }
+</style>
+
+<div class="teams-shell">
+  <div class="teams-titlebar">
+    <div class="teams-titlebar-left">
+      <div class="teams-logo">
+        <div class="teams-logo-icon">
+          <svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path d="M11.5 3.5a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM9 7c-1.1 0-2 .45-2 1v5h4V8c0-.55-.9-1-2-1zM14 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM13 8h-1.18c.11.3.18.63.18 1v5h2V9c0-.55-.45-1-1-1zM4 5.5a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0zM5 8c-.55 0-1 .45-1 1v5h2V9c0-.37.07-.7.18-1H5z"/></svg>
+        </div>
+        Microsoft Teams
+      </div>
+    </div>
+    <div class="teams-titlebar-right">
+      <span><i class="ti ti-minus" style="font-size:14px;" aria-hidden="true"></i></span>
+      <span><i class="ti ti-square" style="font-size:14px;" aria-hidden="true"></i></span>
+      <span><i class="ti ti-x" style="font-size:14px;" aria-hidden="true"></i></span>
+    </div>
+  </div>
+
+  <div class="teams-body">
+    <div class="teams-sidebar">
+      <div class="sidebar-icon"><i class="ti ti-layout-grid" aria-hidden="true"></i></div>
+      <div class="sidebar-icon active"><i class="ti ti-message-circle" aria-hidden="true"></i></div>
+      <div class="sidebar-icon"><i class="ti ti-users" aria-hidden="true"></i></div>
+      <div class="sidebar-icon"><i class="ti ti-calendar" aria-hidden="true"></i></div>
+      <div class="sidebar-icon"><i class="ti ti-folder" aria-hidden="true"></i></div>
+    </div>
+
+    <div class="teams-main">
+      <div class="chat-header">
+        <div class="chat-header-left">
+          <div class="group-avatar">
+            <i class="ti ti-users" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="chat-header-name">Rebecca Jones/USA</div>
+            <div class="member-chips">
+              <span class="chip">Rebecca Jones</span>
+              <span class="chip">Erik Hart</span>
+              <span class="chip">Iniobong Isang</span>
+              <span class="chip">Sonali Dhargalkar</span>
+            </div>
+          </div>
+        </div>
+        <div class="chat-header-tabs">
+          <div class="chat-tab active">Chat</div>
+          <div class="chat-tab">Shared</div>
+          <div class="chat-tab">Storyline</div>
+        </div>
+      </div>
+
+      <div class="chat-messages">
+        <div class="date-divider"><span>Thursday, 28 May 2026</span></div>
+
+        <div class="msg-row">
+          <div class="msg-avatar av-rebecca">RJ</div>
+          <div class="msg-content">
+            <div class="msg-meta">
+              <span class="msg-name">Rebecca Jones</span>
+              <span class="msg-title">Chief Counsel, Litigation &amp; Risk</span>
+              <span class="msg-time">9:03 AM</span>
+            </div>
+            <div class="msg-bubble">
+              <p>Hi all. I've been made aware that there is a cybersecurity incident currently under investigation. Legal needs to be across this immediately.</p>
+              <p>Can someone please bring me up to speed on what has happened, what systems and data are involved, and where things stand right now?</p>
+              <p>I need to understand the timeline of events so far, what data may have been affected, and whether there are any regulatory notification obligations we need to be considering. I also need to know whether cyber insurance has been triggered.</p>
+              <p>Please respond as soon as possible. We cannot assess our legal exposure until we have the full picture.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-area">
+        <div class="chat-input-bar">
+          <span class="chat-input-placeholder">Reply to Rebecca Jones...</span>
+          <div class="chat-input-icons">
+            <i class="ti ti-mood-smile" aria-hidden="true"></i>
+            <i class="ti ti-paperclip" aria-hidden="true"></i>
+            <i class="ti ti-send" aria-hidden="true"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

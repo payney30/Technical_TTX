@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ServiceNow — INC0048291</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #f0f0f0;
+    font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    color: #1d1d1d;
+    min-height: 100vh;
+  }
+
+  /* ── Top nav bar ── */
+  .topbar {
+    background: #292929;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+  }
+  .topbar-logo { display: flex; align-items: center; gap: 8px; }
+  .topbar-logo svg { width: 22px; height: 22px; }
+  .topbar-logotext { color: #fff; font-size: 13px; font-weight: 600; letter-spacing: 0.03em; }
+  .topbar-nav { display: flex; gap: 0; margin-left: 8px; height: 40px; }
+  .topbar-nav-item {
+    display: flex; align-items: center;
+    padding: 0 14px;
+    color: #bbb;
+    font-size: 12px;
+    border-bottom: 2px solid transparent;
+    cursor: default;
+    white-space: nowrap;
+  }
+  .topbar-nav-item.active { color: #fff; border-bottom-color: #62d84e; }
+
+  /* ── Breadcrumb ── */
+  .breadcrumb {
+    background: #f7f7f7;
+    border-bottom: 1px solid #ddd;
+    padding: 5px 16px;
+    font-size: 11px;
+    color: #666;
+    display: flex; gap: 5px; align-items: center;
+  }
+  .breadcrumb a { color: #0070d2; text-decoration: none; }
+  .breadcrumb-sep { color: #aaa; }
+
+  /* ── Form bar ── */
+  .formbar {
+    background: #fff;
+    border-bottom: 1px solid #d0d0d0;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .formbar-title { font-size: 14px; font-weight: 600; color: #1d1d1d; }
+  .formbar-sub { font-size: 12px; color: #666; }
+  .formbar-actions { margin-left: auto; display: flex; gap: 6px; }
+  .fbtn {
+    font-size: 12px; font-weight: 500;
+    padding: 4px 12px; border-radius: 3px;
+    cursor: default; border: 1px solid;
+  }
+  .fbtn-primary { background: #107030; border-color: #0a5525; color: #fff; }
+  .fbtn-secondary { background: #fff; border-color: #aaa; color: #333; }
+
+  /* ── Main form wrapper ── */
+  .form-wrap {
+    background: #fff;
+    border: 1px solid #d0d0d0;
+    margin: 12px 16px;
+    border-radius: 3px;
+  }
+
+  /* ── Form header strip ── */
+  .form-header {
+    background: #f7f7f7;
+    border-bottom: 1px solid #d0d0d0;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .inc-number { font-size: 13px; font-weight: 700; color: #1d1d1d; }
+  .state-badge {
+    font-size: 11px; font-weight: 600;
+    padding: 2px 9px; border-radius: 10px;
+  }
+  .state-in-progress { background: #d4edff; color: #005a8e; border: 1px solid #99cce8; }
+
+  /* ── Two-column field grid ── */
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid #e8e8e8;
+  }
+  .field-cell {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid #e8e8e8;
+    min-height: 30px;
+  }
+  .field-cell:nth-child(odd) { border-right: 1px solid #e8e8e8; }
+  .field-label {
+    width: 148px;
+    flex-shrink: 0;
+    padding: 6px 10px 6px 12px;
+    font-size: 12px;
+    color: #555;
+    text-align: right;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 3px;
+    border-right: 1px solid #e0e0e0;
+    background: #fafafa;
+    line-height: 1.3;
+  }
+  .req { color: #c00; font-weight: 700; font-size: 12px; }
+  .field-value {
+    flex: 1;
+    padding: 5px 8px;
+    font-size: 12px;
+    color: #1d1d1d;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+  }
+  .field-input {
+    display: block;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #c0c0c0;
+    border-radius: 2px;
+    padding: 3px 6px;
+    font-size: 12px;
+    color: #1d1d1d;
+    font-family: inherit;
+    pointer-events: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .field-input.highlighted { background: #fffbe6; border-color: #c8a000; }
+  .field-input.empty { color: #bbb; }
+  .field-select {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #c0c0c0;
+    border-radius: 2px;
+    padding: 3px 6px;
+    font-size: 12px;
+    color: #1d1d1d;
+    cursor: default;
+  }
+  .select-arrow { color: #888; font-size: 10px; flex-shrink: 0; margin-left: 4px; }
+
+  /* time worked split fields */
+  .time-worked-group { display: flex; gap: 4px; align-items: center; }
+  .time-worked-box {
+    width: 36px;
+    background: #fff;
+    border: 1px solid #c0c0c0;
+    border-radius: 2px;
+    padding: 3px 4px;
+    font-size: 12px;
+    color: #1d1d1d;
+    text-align: center;
+    font-family: inherit;
+  }
+  .time-main {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #c0c0c0;
+    border-radius: 2px;
+    padding: 3px 6px;
+    font-size: 12px;
+    color: #1d1d1d;
+    font-family: inherit;
+  }
+
+  /* ── Full-width rows ── */
+  .full-row {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid #e8e8e8;
+  }
+  .full-label {
+    width: 148px;
+    flex-shrink: 0;
+    padding: 8px 10px 8px 12px;
+    font-size: 12px;
+    color: #555;
+    text-align: right;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 3px;
+    border-right: 1px solid #e0e0e0;
+    background: #fafafa;
+    padding-top: 10px;
+  }
+  .full-value { flex: 1; padding: 8px; }
+
+  /* ── Description textarea ── */
+  .desc-box {
+    background: #fff;
+    border: 1px solid #c0c0c0;
+    border-radius: 2px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #1d1d1d;
+    line-height: 1.7;
+  }
+  .desc-box p { margin-bottom: 10px; }
+  .desc-box p:last-child { margin-bottom: 0; }
+
+  /* ── Activity log ── */
+  .activity-section { border-top: 2px solid #e0e0e0; }
+  .activity-header {
+    background: #f7f7f7;
+    border-bottom: 1px solid #ddd;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .activity-entry {
+    border-bottom: 1px solid #eee;
+    padding: 10px 12px;
+    display: flex;
+    gap: 12px;
+  }
+  .activity-entry:last-child { border-bottom: none; }
+  .activity-avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .av-user { background: #d0e8f8; color: #005a8e; border: 1px solid #9cc; }
+  .av-sys { background: #e8e8e8; color: #666; border: 1px solid #ccc; }
+  .activity-meta { font-size: 11px; color: #888; margin-bottom: 4px; }
+  .activity-meta strong { color: #333; }
+  .activity-body { font-size: 12px; color: #333; line-height: 1.6; }
+
+  /* ── Footer ── */
+  .form-footer {
+    background: #f7f7f7;
+    border-top: 1px solid #ddd;
+    padding: 8px 12px;
+    display: flex; align-items: center; gap: 8px;
+    justify-content: flex-end;
+  }
+</style>
+</head>
+<body>
+
+<!-- Top nav -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="16" cy="16" r="16" fill="#62d84e"/>
+      <path d="M8 16.5l5.5 5.5L24 11" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="topbar-logotext">ServiceNow</span>
+  </div>
+  <div class="topbar-nav">
+    <div class="topbar-nav-item">All</div>
+    <div class="topbar-nav-item active">Incident</div>
+    <div class="topbar-nav-item">Service Desk</div>
+    <div class="topbar-nav-item">Change</div>
+    <div class="topbar-nav-item">CMDB</div>
+  </div>
+</div>
+
+<!-- Breadcrumb -->
+<div class="breadcrumb">
+  <a href="#">IT Operations</a>
+  <span class="breadcrumb-sep">›</span>
+  <a href="#">Incidents</a>
+  <span class="breadcrumb-sep">›</span>
+  <span>INC0048291</span>
+</div>
+
+<!-- Form bar -->
+<div class="formbar">
+  <div class="formbar-title">Incident</div>
+  <div class="formbar-sub">INC0048291</div>
+  <div class="formbar-actions">
+    <div class="fbtn fbtn-secondary">Resolve</div>
+    <div class="fbtn fbtn-secondary">Assign to me</div>
+    <div class="fbtn fbtn-primary">Update</div>
+  </div>
+</div>
+
+<!-- Main form -->
+<div class="form-wrap">
+
+  <div class="form-header">
+    <span class="inc-number">INC0048291</span>
+    <span class="state-badge state-in-progress">In Progress</span>
+  </div>
+
+  <div class="field-grid">
+
+    <div class="field-cell">
+      <div class="field-label">Number</div>
+      <div class="field-value"><div class="field-input">INC0048291</div></div>
+    </div>
+    <div class="field-cell">
+      <div class="field-label">State</div>
+      <div class="field-value">
+        <div class="field-select">In Progress <span class="select-arrow">▼</span></div>
+      </div>
+    </div>
+
+    <div class="field-cell">
+      <div class="field-label"><span class="req">*</span> Raised by</div>
+      <div class="field-value"><div class="field-input">Margaret Holcomb</div></div>
+    </div>
+    <div class="field-cell">
+      <div class="field-label">Follow up</div>
+      <div class="field-value"><div class="field-input">2026-05-25 10:34:12 CST</div></div>
+    </div>
+
+    <div class="field-cell">
+      <div class="field-label"><span class="req">*</span> Affected user</div>
+      <div class="field-value"><div class="field-input">Margaret Holcomb</div></div>
+    </div>
+    <div class="field-cell">
+      <div class="field-label">Follow up reason</div>
+      <div class="field-value">
+        <div class="field-select">User unable to access app <span class="select-arrow">▼</span></div>
+      </div>
+    </div>
+
+    <div class="field-cell">
+      <div class="field-label">Business phone</div>
+      <div class="field-value"><div class="field-input">+1 (312) 555-0184</div></div>
+    </div>
+    <div class="field-cell">
+      <div class="field-label"><span class="req">*</span> Configuration item</div>
+      <div class="field-value"><div class="field-input">Workday - Production</div></div>
+    </div>
+
+    <div class="field-cell">
+      <div class="field-label">Alt callback details</div>
+      <div class="field-value"><div class="field-input empty"></div></div>
+    </div>
+    <div class="field-cell">
+      <div class="field-label">CI Location</div>
+      <div class="field-value"><div class="field-input">SaaS - Workday Cloud</div></div>
+    </div>
+
+    <div class="field-cell">
+      <div class="field-label">Company</div>
+      <div class="field-value"><div class="field-input">Cushman &amp; Wakefield</div></div>
+    </div>
+    <div class="field-cell">
+      <div class="field-label"><span class="req">*</span> Category</div>
+      <div class="field-value">
+        <div class="field-select">Access Management <span class="select-arrow">▼</span></div>
+      </div>
+    </div>
+
+    <div class="field-cell">
+      <div class="field-label">Department</div>
+      <div class="field-value"><div class="field-input">Finance</div></div>
+    </div>
+    <div class="field-cell">
+      <div class="field-label"><span class="req">*</span> Subcategory</div>
+      <div class="field-value">
+        <div class="field-select">Account Lockout <span class="select-arrow">▼</span></div>
+      </div>
+    </div>
+
+    <div class="field-cell">
+      <div class="field-label">C&W Client</div>
+      <div class="field-value"><div class="field-input empty"></div></div>
+    </div>
+    <div class="field-cell">
+      <div class="field-label"><span class="req">*</span> Assignment group</div>
+      <div class="field-value"><div class="field-input highlighted">2-Global-SvcDesk-IAM_CWK</div></div>
+    </div>
+
+    <div class="field-cell">
+      <div class="field-label"><span class="req">*</span> Location</div>
+      <div class="field-value"><div class="field-input">Chicago - 225 W Wacker</div></div>
+    </div>
+    <div class="field-cell">
+      <div class="field-label">Assigned to</div>
+      <div class="field-value"><div class="field-input empty"></div></div>
+    </div>
+
+    <div class="field-cell">
+      <div class="field-label">Contact type</div>
+      <div class="field-value">
+        <div class="field-select">Self-service Portal <span class="select-arrow">▼</span></div>
+      </div>
+    </div>
+    <div class="field-cell">
+      <div class="field-label">Assignment Reason</div>
+      <div class="field-value">
+        <div class="field-select">-- None -- <span class="select-arrow">▼</span></div>
+      </div>
+    </div>
+
+    <div class="field-cell">
+      <div class="field-label"><span class="req">*</span> Impact</div>
+      <div class="field-value">
+        <div class="field-select">2 - Medium <span class="select-arrow">▼</span></div>
+      </div>
+    </div>
+    <div class="field-cell">
+      <div class="field-label">Knowledge Article</div>
+      <div class="field-value"><div class="field-input">KB0010482 - Workday Lockout</div></div>
+    </div>
+
+    <div class="field-cell">
+      <div class="field-label"><span class="req">*</span> Urgency</div>
+      <div class="field-value">
+        <div class="field-select">2 - Medium <span class="select-arrow">▼</span></div>
+      </div>
+    </div>
+    <div class="field-cell">
+      <div class="field-label">Misroute</div>
+      <div class="field-value"><input type="checkbox" disabled style="pointer-events:none;"></div>
+    </div>
+
+    <div class="field-cell">
+      <div class="field-label">Priority</div>
+      <div class="field-value"><div class="field-input">3 - Moderate</div></div>
+    </div>
+    <div class="field-cell">
+      <div class="field-label">Time worked</div>
+      <div class="field-value">
+        <div class="time-worked-group">
+          <div class="time-main">00:14:22</div>
+          <div class="time-worked-box">00</div>
+          <div class="time-worked-box">14</div>
+          <div class="time-worked-box">22</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field-cell">
+      <div class="field-label">Required by</div>
+      <div class="field-value"><div class="field-input">2026-05-25 17:00:00 CST</div></div>
+    </div>
+    <div class="field-cell">
+      <div class="field-label">Event Occurred</div>
+      <div class="field-value"><div class="field-input">2026-05-25 10:28:00 CST</div></div>
+    </div>
+
+    <div class="field-cell">
+      <div class="field-label"><span class="req">*</span> Incident Type</div>
+      <div class="field-value">
+        <div class="field-select">User Access Issue <span class="select-arrow">▼</span></div>
+      </div>
+    </div>
+    <div class="field-cell">
+      <div class="field-label"></div>
+      <div class="field-value"></div>
+    </div>
+
+  </div>
+
+  <!-- Short description -->
+  <div class="full-row">
+    <div class="full-label"><span class="req">*</span> Short description</div>
+    <div class="full-value">
+      <div class="field-input">Locked out of Workday — cannot access for month-end close</div>
+    </div>
+  </div>
+
+  <!-- Description -->
+  <div class="full-row" style="align-items: flex-start;">
+    <div class="full-label"><span class="req">*</span> Description</div>
+    <div class="full-value">
+      <div class="desc-box">
+        <p>Hi Service Desk,</p>
+        <p>I have been locked out of Workday since this morning. I tried logging in three times with what I'm pretty sure is my correct password and now I'm getting a message that says my account has been locked due to too many failed attempts.</p>
+        <p>I clicked the "Forgot Password" link but the reset email never arrived in my inbox (I checked junk/spam as well).</p>
+        <p>This is urgent — we are in the middle of month-end close and I need to approve several vendor payments in Workday today. My manager (David Reyes, Finance Director) is aware.</p>
+        <p>Please help me regain access as soon as possible.</p>
+        <p>Thanks,<br>
+        Margaret Holcomb<br>
+        Senior Accountant, Finance<br>
+        Cushman &amp; Wakefield — Chicago Office<br>
+        Ext. 4184</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity log -->
+  <div class="activity-section">
+    <div class="activity-header">▼ Activity</div>
+
+    <div class="activity-entry">
+      <div class="activity-avatar av-user">MH</div>
+      <div style="flex:1;">
+        <div class="activity-meta"><strong>Margaret Holcomb</strong> &nbsp;·&nbsp; Mon 2026-05-25 10:34 CST &nbsp;·&nbsp; Ticket submitted via Self-service Portal</div>
+        <div class="activity-body">User submitted ticket reporting Workday account lockout following three failed login attempts. Password reset email not received. Month-end close in progress — vendor payment approvals blocked. Manager David Reyes (Finance Director) notified.</div>
+      </div>
+    </div>
+
+    <div class="activity-entry">
+      <div class="activity-avatar av-sys">SYS</div>
+      <div style="flex:1;">
+        <div class="activity-meta"><strong>System</strong> &nbsp;·&nbsp; Mon 2026-05-25 10:34 CST &nbsp;·&nbsp; Auto-assignment</div>
+        <div class="activity-body">Ticket auto-routed to assignment group: 2-Global-SvcDesk-IAM_CWK. Knowledge article KB0010482 attached. SLA timer started — Priority 3 Moderate.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="form-footer">
+    <div class="fbtn fbtn-secondary">Cancel</div>
+    <div class="fbtn fbtn-secondary">Save as Draft</div>
+    <div class="fbtn fbtn-primary">Update</div>
+  </div>
+
+</div>
+
+</body>
+</html>
