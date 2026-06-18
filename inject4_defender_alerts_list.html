@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Microsoft Defender - Alerts</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", "Segoe UI Web (West European)", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+    background: #faf9f8;
+    color: #323130;
+    font-size: 13px;
+    width: 1600px;
+    height: 900px;
+    overflow: hidden;
+  }
+  .topbar { background: #002050; color: #fff; height: 48px; display: flex; align-items: center; padding: 0 16px; position: relative; }
+  .topbar .waffle { width: 24px; height: 24px; display: grid; grid-template-columns: repeat(3, 4px); grid-template-rows: repeat(3, 4px); gap: 2px; margin-right: 12px; }
+  .topbar .waffle span { background: #fff; border-radius: 1px; }
+  .topbar .product { font-size: 14px; font-weight: 600; }
+  .topbar .search { position: absolute; left: 50%; transform: translateX(-50%); width: 468px; height: 32px; background: #fff; border-radius: 2px; display: flex; align-items: center; padding: 0 12px; color: #605e5c; }
+  .topbar .search svg { margin-right: 8px; }
+  .topbar .right-icons { margin-left: auto; display: flex; align-items: center; gap: 18px; color: #fff; }
+  .topbar .avatar { width: 28px; height: 28px; border-radius: 50%; background: #8a2c8a; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+  .layout { display: flex; height: calc(900px - 48px); }
+  .sidebar { width: 200px; background: #fff; border-right: 1px solid #edebe9; padding: 8px 0; overflow-y: auto; flex-shrink: 0; }
+  .sidebar .hamburger { padding: 10px 16px; cursor: pointer; color: #605e5c; font-size: 16px; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 8px 16px; color: #323130; cursor: pointer; font-size: 13px; position: relative; }
+  .sidebar-item:hover { background: #f3f2f1; }
+  .sidebar-item .chev { margin-left: auto; color: #605e5c; font-size: 10px; }
+  .sidebar-item .ico { width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; color: #605e5c; }
+  .sidebar-sub { padding-left: 42px; padding-top: 4px; padding-bottom: 4px; cursor: pointer; color: #323130; }
+  .sidebar-sub.active { color: #0078d4; font-weight: 600; border-left: 3px solid #0078d4; margin-left: -3px; padding-left: 39px; background: #f3f9fd; }
+  .sidebar-sub:hover { background: #f3f2f1; }
+  .content { flex: 1; padding: 18px 20px; overflow: auto; }
+  .page-title { font-size: 24px; font-weight: 600; color: #323130; margin-bottom: 16px; }
+  .toolbar { display: flex; align-items: center; gap: 18px; padding: 6px 0; border-bottom: 1px solid #edebe9; margin-bottom: 10px; }
+  .tb-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #323130; cursor: pointer; padding: 4px 6px; }
+  .tb-right { margin-left: auto; display: flex; align-items: center; gap: 18px; color: #605e5c; font-size: 13px; }
+  .filters { display: flex; align-items: center; gap: 8px; padding: 8px 0; margin-bottom: 6px; font-size: 13px; color: #605e5c; }
+  .chip { background: #f3f2f1; border: 1px solid #edebe9; border-radius: 2px; padding: 4px 8px; display: inline-flex; align-items: center; gap: 6px; color: #323130; }
+  .chip .x { color: #605e5c; cursor: pointer; font-size: 11px; }
+  table.alerts { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; }
+  table.alerts thead th { text-align: left; font-weight: 600; color: #323130; padding: 8px 8px; border-bottom: 1px solid #edebe9; background: #fff; font-size: 12px; white-space: nowrap; }
+  table.alerts tbody td { padding: 10px 8px; border-bottom: 1px solid #f3f2f1; color: #323130; vertical-align: middle; white-space: nowrap; }
+  table.alerts tbody tr:hover { background: #f8f7f6; }
+  .checkbox { width: 14px; height: 14px; border: 1px solid #8a8886; border-radius: 2px; display: inline-block; background: #fff; }
+  .sev { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; }
+  .sev-bars { display: inline-flex; gap: 2px; }
+  .sev-bars span { width: 4px; height: 12px; border-radius: 1px; background: #d2d0ce; }
+  .sev-high .sev-bars span { background: #a4262c; }
+  .sev-med .sev-bars span:nth-child(1), .sev-med .sev-bars span:nth-child(2) { background: #d83b01; }
+  .sev-low .sev-bars span:nth-child(1) { background: #f7a440; }
+  .status { display: inline-flex; align-items: center; gap: 6px; }
+  .status .dot { width: 8px; height: 8px; border-radius: 50%; background: #0078d4; }
+  .status.inprogress .dot { background: #ffaa44; }
+  .status.resolved .dot { background: #107c10; }
+  .col-name { font-weight: 400; color: #323130; }
+  .impacted { display: inline-flex; align-items: center; gap: 6px; color: #323130; }
+  .impacted .user-ico { width: 14px; height: 14px; border-radius: 50%; background: #edebe9; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; color: #605e5c; }
+  .impacted .host-ico { width: 14px; height: 10px; background: #edebe9; border-radius: 1px; display: inline-block; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="waffle"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="product">Microsoft Defender</div>
+  <div class="search"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#605e5c" stroke-width="1.5"><circle cx="7" cy="7" r="5"/><path d="M11 11l3 3"/></svg>Search</div>
+  <div class="right-icons"><span>⚲</span><span>⚙</span><span>?</span><div class="avatar">RC</div></div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="hamburger">☰</div>
+    <div class="sidebar-item"><span class="ico">⌂</span> Home</div>
+    <div class="sidebar-item"><span class="ico">⚠</span> Incidents &amp; alerts <span class="chev">⌃</span></div>
+    <div class="sidebar-sub">Incidents</div>
+    <div class="sidebar-sub active">Alerts</div>
+    <div class="sidebar-item"><span class="ico">🎯</span> Hunting <span class="chev">⌄</span></div>
+    <div class="sidebar-item"><span class="ico">▶</span> Actions &amp; submissions <span class="chev">⌄</span></div>
+    <div class="sidebar-item"><span class="ico">🛡</span> Threat intelligence <span class="chev">⌄</span></div>
+    <div class="sidebar-item"><span class="ico">★</span> Secure score</div>
+    <div class="sidebar-item"><span class="ico">📚</span> Learning hub</div>
+    <div class="sidebar-item"><span class="ico">⚗</span> Trials</div>
+    <div class="sidebar-item"><span class="ico">⊞</span> Partner catalog <span class="chev">⌄</span></div>
+    <div class="sidebar-item"><span class="ico">💼</span> Assets <span class="chev">⌃</span></div>
+    <div class="sidebar-item"><span class="ico">👤</span> Identities</div>
+    <div class="sidebar-item"><span class="ico">✉</span> Email &amp; collaboration <span class="chev">⌃</span></div>
+    <div class="sidebar-item"><span class="ico">🔍</span> Investigations</div>
+  </div>
+
+  <div class="content">
+    <div class="page-title">Alerts</div>
+    <div class="toolbar">
+      <div class="tb-item">⬇ Export</div>
+      <div class="tb-item">📅 1 Week ⌄</div>
+      <div class="tb-right">
+        <span>147 items</span>
+        <span>🔲 Customize columns</span>
+        <span>⛛ Filter</span>
+      </div>
+    </div>
+    <div class="filters">
+      <span>Filters:</span>
+      <span class="chip">Status: New, In progress, Resolved <span class="x">✕</span></span>
+      <span class="chip">Severity: Informational, Low, Medium, High <span class="x">✕</span></span>
+    </div>
+
+    <table class="alerts">
+      <thead>
+        <tr>
+          <th style="width:30px;"><div class="checkbox"></div></th>
+          <th>Alert name</th>
+          <th>Tags</th>
+          <th>Severity</th>
+          <th>Investigation state</th>
+          <th>Status</th>
+          <th>Category</th>
+          <th>Detection source</th>
+          <th>Impacted assets</th>
+          <th>First activity</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="checkbox"></div></td>
+          <td class="col-name">Phish delivered due to an ETR override</td>
+          <td></td>
+          <td><div class="sev sev-med"><div class="sev-bars"><span></span><span></span><span></span></div> Medium</div></td>
+          <td></td>
+          <td><div class="status"><span class="dot"></span> New</div></td>
+          <td>Initial access</td>
+          <td>Microsoft Defender for Office 365</td>
+          <td><div class="impacted"><span class="user-ico">👤</span> avancleve</div></td>
+          <td>May 26, 2025 12:47 AM</td>
+        </tr>
+        <tr>
+          <td><div class="checkbox"></div></td>
+          <td class="col-name">Email reported by user as malware or phish</td>
+          <td></td>
+          <td><div class="sev sev-low"><div class="sev-bars"><span></span><span></span><span></span></div> Informational</div></td>
+          <td></td>
+          <td><div class="status"><span class="dot"></span> New</div></td>
+          <td>Initial access</td>
+          <td>Microsoft Defender for Office 365</td>
+          <td><div class="impacted"><span class="user-ico">👤</span> hbrannock</div></td>
+          <td>May 26, 2025 12:34 AM</td>
+        </tr>
+        <tr>
+          <td><div class="checkbox"></div></td>
+          <td class="col-name">Suspicious URL clicked</td>
+          <td></td>
+          <td><div class="sev sev-low"><div class="sev-bars"><span></span><span></span><span></span></div> Low</div></td>
+          <td></td>
+          <td><div class="status inprogress"><span class="dot"></span> In progress</div></td>
+          <td>Initial access</td>
+          <td>Microsoft Defender for Office 365</td>
+          <td><div class="impacted"><span class="user-ico">👤</span> fpendelton</div></td>
+          <td>May 26, 2025 12:22 AM</td>
+        </tr>
+        <tr>
+          <td><div class="checkbox"></div></td>
+          <td class="col-name">User reported phish — message contained suspicious link</td>
+          <td></td>
+          <td><div class="sev sev-low"><div class="sev-bars"><span></span><span></span><span></span></div> Informational</div></td>
+          <td></td>
+          <td><div class="status resolved"><span class="dot"></span> Resolved</div></td>
+          <td>Initial access</td>
+          <td>Microsoft Defender for Office 365</td>
+          <td><div class="impacted"><span class="user-ico">👤</span> btinsley</div></td>
+          <td>May 26, 2025 12:11 AM</td>
+        </tr>
+        <tr>
+          <td><div class="checkbox"></div></td>
+          <td class="col-name">PUA:Win32/Presenoker detected</td>
+          <td></td>
+          <td><div class="sev sev-low"><div class="sev-bars"><span></span><span></span><span></span></div> Low</div></td>
+          <td></td>
+          <td><div class="status resolved"><span class="dot"></span> Resolved</div></td>
+          <td>Malware</td>
+          <td>Microsoft Defender Antivirus</td>
+          <td><div class="impacted"><span class="host-ico"></span> CW-NYC-LPT207</div></td>
+          <td>May 26, 2025 12:02 AM</td>
+        </tr>
+        <tr>
+          <td><div class="checkbox"></div></td>
+          <td class="col-name">Antimalware Action Taken</td>
+          <td></td>
+          <td><div class="sev sev-low"><div class="sev-bars"><span></span><span></span><span></span></div> Informational</div></td>
+          <td></td>
+          <td><div class="status resolved"><span class="dot"></span> Resolved</div></td>
+          <td>Malware</td>
+          <td>Microsoft Defender Antivirus</td>
+          <td><div class="impacted"><span class="host-ico"></span> CW-DAL-WKS091</div></td>
+          <td>May 25, 2025 11:43 PM</td>
+        </tr>
+        <!-- Target alert -->
+        <tr>
+          <td><div class="checkbox"></div></td>
+          <td class="col-name">Sign-in at unusual time</td>
+          <td></td>
+          <td><div class="sev sev-med"><div class="sev-bars"><span></span><span></span><span></span></div> Medium</div></td>
+          <td></td>
+          <td><div class="status"><span class="dot"></span> New</div></td>
+          <td>Initial access</td>
+          <td>Microsoft Entra ID Protection</td>
+          <td><div class="impacted"><span class="user-ico">👤</span> gkellerman</div></td>
+          <td>May 25, 2025 11:08 PM</td>
+        </tr>
+        <tr>
+          <td><div class="checkbox"></div></td>
+          <td class="col-name">Email messages containing malicious URL removed after delivery</td>
+          <td></td>
+          <td><div class="sev sev-low"><div class="sev-bars"><span></span><span></span><span></span></div> Low</div></td>
+          <td></td>
+          <td><div class="status resolved"><span class="dot"></span> Resolved</div></td>
+          <td>Initial access</td>
+          <td>Microsoft Defender for Office 365</td>
+          <td><div class="impacted">📧 Microsoft Exchange Online</div></td>
+          <td>May 25, 2025 10:52 PM</td>
+        </tr>
+        <tr>
+          <td><div class="checkbox"></div></td>
+          <td class="col-name">Phish not zapped because ZAP is disabled</td>
+          <td></td>
+          <td><div class="sev sev-low"><div class="sev-bars"><span></span><span></span><span></span></div> Informational</div></td>
+          <td></td>
+          <td><div class="status resolved"><span class="dot"></span> Resolved</div></td>
+          <td>Initial access</td>
+          <td>Microsoft Defender for Office 365</td>
+          <td><div class="impacted"><span class="user-ico">👤</span> clarraby</div></td>
+          <td>May 25, 2025 10:36 PM</td>
+        </tr>
+        <tr>
+          <td><div class="checkbox"></div></td>
+          <td class="col-name">Suspicious URL clicked</td>
+          <td></td>
+          <td><div class="sev sev-low"><div class="sev-bars"><span></span><span></span><span></span></div> Low</div></td>
+          <td></td>
+          <td><div class="status resolved"><span class="dot"></span> Resolved</div></td>
+          <td>Initial access</td>
+          <td>Microsoft Defender for Office 365</td>
+          <td><div class="impacted"><span class="user-ico">👤</span> dchertow</div></td>
+          <td>May 25, 2025 10:14 PM</td>
+        </tr>
+        <tr>
+          <td><div class="checkbox"></div></td>
+          <td class="col-name">Email reported by user as junk</td>
+          <td></td>
+          <td><div class="sev sev-low"><div class="sev-bars"><span></span><span></span><span></span></div> Informational</div></td>
+          <td></td>
+          <td><div class="status resolved"><span class="dot"></span> Resolved</div></td>
+          <td>Initial access</td>
+          <td>Microsoft Defender for Office 365</td>
+          <td><div class="impacted"><span class="user-ico">👤</span> ikessel</div></td>
+          <td>May 25, 2025 9:48 PM</td>
+        </tr>
+        <tr>
+          <td><div class="checkbox"></div></td>
+          <td class="col-name">Suspicious URL clicked</td>
+          <td></td>
+          <td><div class="sev sev-med"><div class="sev-bars"><span></span><span></span><span></span></div> Medium</div></td>
+          <td></td>
+          <td><div class="status resolved"><span class="dot"></span> Resolved</div></td>
+          <td>Initial access</td>
+          <td>Microsoft Defender for Office 365</td>
+          <td><div class="impacted"><span class="user-ico">👤</span> jwhitlock</div></td>
+          <td>May 25, 2025 9:21 PM</td>
+        </tr>
+        <tr>
+          <td><div class="checkbox"></div></td>
+          <td class="col-name">PUA:Win32/Adload detected</td>
+          <td></td>
+          <td><div class="sev sev-low"><div class="sev-bars"><span></span><span></span><span></span></div> Low</div></td>
+          <td></td>
+          <td><div class="status resolved"><span class="dot"></span> Resolved</div></td>
+          <td>Malware</td>
+          <td>Microsoft Defender Antivirus</td>
+          <td><div class="impacted"><span class="host-ico"></span> CW-SFO-LPT229</div></td>
+          <td>May 25, 2025 8:42 PM</td>
+        </tr>
+        <tr>
+          <td><div class="checkbox"></div></td>
+          <td class="col-name">Email reported by user as malware or phish</td>
+          <td></td>
+          <td><div class="sev sev-low"><div class="sev-bars"><span></span><span></span><span></span></div> Informational</div></td>
+          <td></td>
+          <td><div class="status resolved"><span class="dot"></span> Resolved</div></td>
+          <td>Initial access</td>
+          <td>Microsoft Defender for Office 365</td>
+          <td><div class="impacted"><span class="user-ico">👤</span> fpendelton</div></td>
+          <td>May 25, 2025 8:17 PM</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+</html>

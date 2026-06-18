@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SolarWinds NPM - Corporate Firewall Overview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    background: #e8eaed;
+    color: #333;
+    font-size: 13px;
+  }
+  .app { background: #f4f5f6; min-height: 100vh; }
+
+  /* Top nav */
+  .topbar {
+    background: #2b2b2b;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 16px;
+    font-size: 13px;
+  }
+  .logo { display: flex; align-items: center; font-weight: 700; font-size: 15px; margin-right: 22px; }
+  .logo .bolt { color: #f5a623; margin-left: 2px; font-size: 16px; }
+  .nav-item { padding: 0 14px; line-height: 40px; color: #ccc; }
+  .nav-item.active { background: #1a1a1a; color: #fff; border-bottom: 3px solid #f5a623; }
+  .nav-item.title { color: #fff; font-weight: 600; }
+  .spacer { flex: 1; }
+  .topbar-right { display: flex; align-items: center; gap: 18px; color: #ccc; }
+  .topbar-right .icon { opacity: .8; }
+
+  /* Page header */
+  .page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 14px 18px 8px;
+  }
+  .page-head h1 { font-size: 18px; font-weight: 600; color: #333; }
+  .clock { text-align: right; color: #555; }
+  .clock .time { font-size: 18px; font-weight: 600; }
+  .clock .date { font-size: 12px; color: #777; }
+
+  /* Layout */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    padding: 0 18px 18px;
+  }
+  .panel {
+    background: #fff;
+    border: 1px solid #d6d9dc;
+    border-radius: 2px;
+  }
+  .panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e3e5e7;
+  }
+  .panel-head h2 { font-size: 14px; font-weight: 600; color: #444; }
+  .view-all { color: #4a90d9; font-size: 12px; text-decoration: none; }
+  .view-all:hover { text-decoration: underline; }
+
+  /* Alerts */
+  .alerts { grid-row: span 1; }
+  .alert-header { font-size: 11px; color: #999; padding: 6px 12px; border-bottom: 1px solid #eee; letter-spacing: .5px; }
+  .alert-row {
+    display: flex;
+    gap: 8px;
+    padding: 7px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    align-items: flex-start;
+  }
+  .alert-row:nth-child(even) { background: #f8f9fa; }
+  .alert-icon { flex-shrink: 0; margin-top: 1px; }
+  .alert-text .main { font-size: 12px; color: #444; }
+  .alert-text .sub { font-size: 11px; color: #999; margin-top: 1px; }
+  .sev-red { color: #c0392b; }
+  .sev-amber { color: #e8a33d; }
+
+  /* Node status table */
+  .node-table { width: 100%; border-collapse: collapse; }
+  .node-table th {
+    text-align: left;
+    font-size: 11px;
+    color: #888;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e3e5e7;
+  }
+  .node-table td { padding: 9px 12px; font-size: 12px; border-bottom: 1px solid #f0f0f0; }
+  .node-table tr:nth-child(even) td { background: #f8f9fa; }
+  .node-link { color: #4a90d9; }
+  .status-clean { color: #5aa84b; font-weight: 600; }
+  .dot { color: #5aa84b; margin-right: 4px; }
+
+  /* CPU/Mem chart */
+  .util-body { padding: 10px 12px; display: flex; gap: 8px; }
+  .util-chart { flex: 1; }
+  .util-legend { display: flex; flex-direction: column; gap: 10px; justify-content: center; font-size: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-line { width: 22px; height: 3px; border-radius: 2px; }
+
+  /* Big traffic chart */
+  .traffic { grid-column: 1 / 3; }
+  .traffic-body { padding: 10px 12px; }
+  .chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 11px;
+    color: #555;
+    padding-top: 6px;
+    border-top: 1px solid #f0f0f0;
+    margin-top: 4px;
+  }
+  .chart-legend .legend-item .legend-line { width: 18px; }
+
+  /* Conversations */
+  .conv-row {
+    display: flex;
+    align-items: center;
+    padding: 7px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    gap: 10px;
+  }
+  .conv-row:nth-child(odd) { background: #f8f9fa; }
+  .conv-dest { flex: 1; font-size: 12px; color: #555; }
+  .conv-rate { font-size: 12px; color: #444; width: 78px; text-align: right; }
+  .conv-bar-wrap { width: 120px; background: #eee; height: 9px; border-radius: 2px; overflow: hidden; }
+  .conv-bar { height: 100%; background: #2b6cb0; }
+  .conv-head-row {
+    display: flex; padding: 7px 12px; font-size: 11px; color: #888; font-weight: 600;
+    border-bottom: 1px solid #e3e5e7;
+  }
+  .suspicious { color: #c0392b; }
+
+  /* Active alerts */
+  .active-alert-body { padding: 10px 12px; }
+  .ha-label { font-size: 11px; color: #999; margin-bottom: 6px; letter-spacing: .5px; }
+  .ha-row { display: flex; gap: 8px; align-items: center; background: #fdf3f2; border: 1px solid #f3d6d2; padding: 9px; border-radius: 2px; }
+  .ha-row .txt { font-size: 12px; color: #444; }
+
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 12px;
+  }
+
+  /* footer */
+  .footer {
+    background: #2b2b2b;
+    color: #aaa;
+    font-size: 11px;
+    padding: 5px 18px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+    .traffic { grid-column: auto; }
+    .bottom-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Top navigation -->
+  <div class="topbar">
+    <span class="logo">solarwinds<span class="bolt">&#9889;</span></span>
+    <span class="nav-item title">Network Performance Monitor</span>
+    <span class="nav-item active">NPM</span>
+    <span class="spacer"></span>
+    <div class="topbar-right">
+      <span>Orion Platform UI</span>
+      <span>Sign in &#9662;</span>
+      <span class="icon">&#128269;</span>
+      <span class="icon">&#9881;</span>
+      <span class="icon">&#128100;</span>
+    </div>
+  </div>
+
+  <!-- Page header -->
+  <div class="page-head">
+    <h1>Network Operations - Corporate Firewall Overview</h1>
+    <div class="clock">
+      <div class="time">14:45 CST &#9201;</div>
+      <div class="date">Wed, May 27, 2026</div>
+    </div>
+  </div>
+
+  <!-- Main grid -->
+  <div class="grid">
+
+    <!-- Top 10 Alerts -->
+    <div class="panel alerts">
+      <div class="panel-head">
+        <h2>Top 10 Alerts</h2>
+        <a class="view-all" href="#">View All &#9662;</a>
+      </div>
+      <div class="alert-header">ALERT</div>
+      <div class="alert-row">
+        <span class="alert-icon sev-red">&#9888;</span>
+        <div class="alert-text">
+          <div class="main">High Egress traffic on CORP-FW-01 - 14:31 CST</div>
+          <div class="sub">14:31 CST - 14:31 CST</div>
+        </div>
+      </div>
+      <div class="alert-row">
+        <span class="alert-icon sev-amber">&#9888;</span>
+        <div class="alert-text"><div class="main">Gig0/0/0 on CORP-FW-01 (ASR-9001)</div></div>
+      </div>
+      <div class="alert-row">
+        <span class="alert-icon sev-amber">&#9888;</span>
+        <div class="alert-text"><div class="main">Gig0/0/0 on CORP-FW-01 (ASR-9001)</div></div>
+      </div>
+      <div class="alert-row">
+        <span class="alert-icon sev-amber">&#9888;</span>
+        <div class="alert-text"><div class="main">Gig0/0/0 on CORP-FW-01 (ASR-9001)</div></div>
+      </div>
+      <div class="alert-row">
+        <span class="alert-icon sev-amber">&#9888;</span>
+        <div class="alert-text"><div class="main">Gig0/0/0 on CORP-FW-01 (ASR-9001)</div></div>
+      </div>
+      <div class="alert-row">
+        <span class="alert-icon sev-amber">&#9888;</span>
+        <div class="alert-text"><div class="main">Gig0/0/0 on CORP-FW-01 (ASR-9001)</div></div>
+      </div>
+      <div class="alert-row">
+        <span class="alert-icon sev-amber">&#9888;</span>
+        <div class="alert-text"><div class="main">Gig0/0/0 on CORP-FW-01 (ASR-9001)</div></div>
+      </div>
+    </div>
+
+    <!-- Node Status -->
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Node Status</h2>
+        <a class="view-all" href="#">View All &#9662;</a>
+      </div>
+      <table class="node-table">
+        <thead>
+          <tr><th>Node &#9650;</th><th>Status</th><th>Purity Status</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="node-link">CORP-FW-01</span></td>
+            <td><span class="status-clean"><span class="dot">&#10004;</span>Clean</span></td>
+            <td>AI-node Status</td>
+          </tr>
+          <tr>
+            <td><span class="node-link">CORP-FW-01</span></td>
+            <td><span class="status-clean"><span class="dot">&#10004;</span>Mean</span></td>
+            <td>All-Rawa Mentioned</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- CPU / Memory -->
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Average CPU/Memory Utilization</h2>
+      </div>
+      <div class="util-body">
+        <div class="util-chart">
+          <svg viewBox="0 0 320 110" width="100%" height="110">
+            <!-- axis labels -->
+            <text x="0" y="14" font-size="9" fill="#999">100%</text>
+            <text x="2" y="55" font-size="9" fill="#999">50%</text>
+            <text x="6" y="100" font-size="9" fill="#999">0%</text>
+            <text x="-6" y="60" font-size="9" fill="#999" transform="rotate(-90 14 60)">Mbpps</text>
+            <!-- gridlines -->
+            <line x1="30" y1="10" x2="320" y2="10" stroke="#eee"/>
+            <line x1="30" y1="52" x2="320" y2="52" stroke="#eee"/>
+            <line x1="30" y1="95" x2="320" y2="95" stroke="#eee"/>
+            <!-- CPU line (orange, high) -->
+            <polyline fill="none" stroke="#e8a33d" stroke-width="1.5"
+              points="30,22 70,24 110,21 150,25 165,18 175,16 200,15 240,16 290,15 320,16"/>
+            <!-- Memory line (blue, lower with spike) -->
+            <polyline fill="none" stroke="#5b8fc7" stroke-width="1.5"
+              points="30,72 60,71 90,73 110,72 118,55 124,72 150,70 175,62 210,60 250,63 290,62 320,63"/>
+            <!-- x labels -->
+            <text x="30" y="108" font-size="8" fill="#999">14:00</text>
+            <text x="90" y="108" font-size="8" fill="#999">14:40</text>
+            <text x="150" y="108" font-size="8" fill="#999">14:50</text>
+            <text x="210" y="108" font-size="8" fill="#999">14:80</text>
+            <text x="280" y="108" font-size="8" fill="#999">16:30</text>
+          </svg>
+        </div>
+        <div class="util-legend">
+          <div class="legend-item"><span class="legend-line" style="background:#e8a33d"></span>CPU</div>
+          <div class="legend-item"><span class="legend-line" style="background:#5b8fc7"></span>Memory</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Big Traffic chart -->
+    <div class="panel traffic">
+      <div class="panel-head">
+        <h2>Top Interfaces by Egress Traffic | Wed, May 27, 2026 (12:00 - 16:00 CST)</h2>
+        <a class="view-all" href="#">Marktwidgets &#9662;</a>
+      </div>
+      <div class="traffic-body">
+        <svg viewBox="0 0 900 340" width="100%" height="340">
+          <!-- Y axis labels + gridlines -->
+          <g font-size="11" fill="#999">
+            <text x="20" y="20">5 Gbps</text><line x1="70" y1="16" x2="890" y2="16" stroke="#eee"/>
+            <text x="20" y="78">4 Gbps</text><line x1="70" y1="74" x2="890" y2="74" stroke="#eee"/>
+            <text x="20" y="136">3 Gbps</text><line x1="70" y1="132" x2="890" y2="132" stroke="#eee"/>
+            <text x="20" y="194">2 Gbps</text><line x1="70" y1="190" x2="890" y2="190" stroke="#eee"/>
+            <text x="20" y="252">1 Gbps</text><line x1="70" y1="248" x2="890" y2="248" stroke="#eee"/>
+            <text x="20" y="300">0 Gbps</text><line x1="70" y1="296" x2="890" y2="296" stroke="#ccc"/>
+          </g>
+          <text x="12" y="160" font-size="11" fill="#999" transform="rotate(-90 12 160)">Mbps/Gbps</text>
+
+          <!-- Main egress area (blue) with the spike around 14:00-14:30 -->
+          <path d="
+            M70,290
+            L300,288 L360,289 L420,287
+            L425,290 L430,55 L455,40 L480,32 L500,30 L520,55
+            L540,52 L560,58 L575,60 L585,288
+            L600,289 L750,290 L890,290
+            L890,296 L70,296 Z"
+            fill="#a9c9e3" stroke="#5b8fc7" stroke-width="1.2" opacity="0.85"/>
+
+          <!-- secondary small egress (orange) hump under the spike -->
+          <path d="
+            M425,296 L430,280 L470,272 L510,275 L560,280 L585,294 L585,296 Z"
+            fill="#e8a33d" stroke="#d18a28" stroke-width="1" opacity="0.7"/>
+
+          <!-- X axis labels -->
+          <g font-size="11" fill="#999">
+            <text x="58" y="314">12:00</text>
+            <text x="222" y="314">13:00</text>
+            <text x="390" y="314">14:00</text>
+            <text x="470" y="314">14:15</text>
+            <text x="556" y="314">14:30</text>
+            <text x="710" y="314">15:00</text>
+            <text x="862" y="314">16:00</text>
+          </g>
+        </svg>
+        <div class="chart-legend">
+          <div class="legend-item"><span class="legend-line" style="background:#5b8fc7"></span>Gig0/0/0 on CORP-FW-01 (ASR-9001)</div>
+          <div class="legend-item"><span class="legend-line" style="background:#e8a33d"></span>External Egress</div>
+          <div class="legend-item"><span class="legend-line" style="background:#d18a28"></span>Gig0/0/0</div>
+          <div class="legend-item"><span class="legend-line" style="background:#5aa84b"></span>Suspional (egress)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom row: Conversations + Active Alerts -->
+    <div class="traffic" style="grid-column: 1 / 4;">
+      <div class="bottom-grid">
+
+        <!-- Top Conversations -->
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Top Conversations (Egress)</h2>
+            <a class="view-all" href="#">View All &#9662;</a>
+          </div>
+          <div class="conv-head-row">
+            <span style="flex:1">EXTERNAL DESTINATION</span>
+            <span>DATA RATE ( Mbps/Gbps)</span>
+          </div>
+          <div class="conv-row">
+            <span class="conv-dest">To 192.168.10.21</span>
+            <span class="conv-rate">65.2 Mbps</span>
+            <span class="conv-bar-wrap"><span class="conv-bar" style="width:95%"></span></span>
+          </div>
+          <div class="conv-row">
+            <span class="conv-dest">To 10.197.20.22 to unknown region</span>
+            <span class="conv-rate">31.8 Mbps</span>
+            <span class="conv-bar-wrap"><span class="conv-bar" style="width:48%"></span></span>
+          </div>
+          <div class="conv-row">
+            <span class="conv-dest">To 192.213.133 <span class="suspicious">to suspicious region</span></span>
+            <span class="conv-rate">1.18 Mbps</span>
+            <span class="conv-bar-wrap"><span class="conv-bar" style="width:14%"></span></span>
+          </div>
+          <div class="conv-row">
+            <span class="conv-dest">To 192.213.144 <span class="suspicious">to suspicious region</span></span>
+            <span class="conv-rate">2.59 Mbps</span>
+            <span class="conv-bar-wrap"><span class="conv-bar" style="width:22%"></span></span>
+          </div>
+          <div class="conv-row">
+            <span class="conv-dest">To 192.174.250 <span class="suspicious">to suspicious region</span></span>
+            <span class="conv-rate">1.63 Mbps</span>
+            <span class="conv-bar-wrap"><span class="conv-bar" style="width:16%"></span></span>
+          </div>
+          <div class="conv-row">
+            <span class="conv-dest">To 10.202.20.12 to unknown</span>
+            <span class="conv-rate">1.26 Mbps</span>
+            <span class="conv-bar-wrap"><span class="conv-bar" style="width:13%"></span></span>
+          </div>
+        </div>
+
+        <!-- Active Alerts -->
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Active Alerts</h2>
+            <a class="view-all" href="#">View All &#9662;</a>
+          </div>
+          <div class="active-alert-body">
+            <div class="ha-label">HIGH PRIORITY</div>
+            <div class="ha-row">
+              <span class="sev-red">&#9888;</span>
+              <span class="txt">High Egress traffic on CORP-FW-01 - 14:31 CST</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>Orion Platform UI</span>
+    <span>14:45 CST, Wed, May 27, 2026</span>
+  </div>
+
+</div>
+</body>
+</html>
