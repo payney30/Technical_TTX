@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Vantage IR — Preliminary Findings Memo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:         #111418;
+    --surface:    #181c22;
+    --surface2:   #1e2330;
+    --surface3:   #232937;
+    --border:     #2a3040;
+    --border-lt:  #354055;
+    --text:       #c8d0dc;
+    --text-dim:   #6a7a8a;
+    --text-bright:#e8edf5;
+    --amber:      #f5a623;
+    --amber-bg:   #1e1500;
+    --amber-dim:  #2a1e00;
+    --red:        #c0392b;
+    --red-bg:     #1e0808;
+    --green:      #27ae60;
+    --blue:       #2980b9;
+    --teal:       #1a6b7a;
+    --mono:       'IBM Plex Mono', 'Courier New', monospace;
+    --sans:       'IBM Plex Sans', -apple-system, sans-serif;
+  }
+
+  html, body {
+    background: #0d1014;
+    font-family: var(--sans);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100dvh;
+  }
+
+  /* ── Exercise banner ── */
+  .ex-bar {
+    background: #2a1e00;
+    border-bottom: 2px solid #f0c040;
+    padding: 7px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #f0c040;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.06em;
+    font-family: var(--mono);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .ex-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #f0c040;
+    animation: blink 1.4s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  /* ── Document shell ── */
+  .doc-shell {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+  }
+
+  /* ── Firm header ── */
+  .firm-header {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--teal);
+    border-radius: 4px 4px 0 0;
+    padding: 20px 24px 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .firm-logo-block { display: flex; align-items: center; gap: 12px; }
+  .firm-logo-mark {
+    width: 44px; height: 44px;
+    background: var(--teal);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: -0.5px;
+    flex-shrink: 0;
+  }
+  .firm-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-bright);
+    letter-spacing: 0.01em;
+  }
+  .firm-sub {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+    letter-spacing: 0.03em;
+  }
+  .doc-classification {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .class-badge {
+    display: inline-block;
+    background: var(--red-bg);
+    border: 1px solid var(--red);
+    color: #e05050;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 3px 10px;
+    border-radius: 3px;
+  }
+  .doc-ref {
+    font-size: 10px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    margin-top: 6px;
+  }
+
+  /* ── Memo metadata block ── */
+  .memo-meta {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 0;
+  }
+  .meta-row {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .meta-row:last-child { border-bottom: none; }
+  .meta-label {
+    width: 100px;
+    flex-shrink: 0;
+    padding: 9px 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    border-right: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .meta-value {
+    padding: 9px 14px;
+    color: var(--text-bright);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .meta-value.mono { font-family: var(--mono); font-size: 11px; }
+
+  /* ── Status strip ── */
+  .status-strip {
+    background: var(--amber-dim);
+    border: 1px solid #5a3a00;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    padding: 9px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    color: #e09020;
+    font-family: var(--mono);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .status-icon { font-size: 13px; }
+
+  /* ── Content sections ── */
+  .content-area { margin-top: 20px; }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .section-header {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--teal);
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-bright);
+    letter-spacing: 0.01em;
+    flex: 1;
+  }
+  .section-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 2px 8px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .tag-confirmed  { background: #0a2010; color: #4ade80; border: 1px solid #1a4a28; }
+  .tag-pending    { background: #2a1e00; color: #f5a623; border: 1px solid #4a3800; }
+  .tag-unknown    { background: #1a1f2a; color: #6b7a8d; border: 1px solid #2a3040; }
+  .tag-concern    { background: var(--red-bg); color: #e05050; border: 1px solid #4a1818; }
+
+  .section-body {
+    padding: 16px;
+  }
+  .section-body p {
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 10px;
+    line-height: 1.65;
+  }
+  .section-body p:last-child { margin-bottom: 0; }
+
+  /* ── Finding rows ── */
+  .finding-list { list-style: none; }
+  .finding-item {
+    display: flex;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .finding-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .fi-bullet {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+  .fi-confirmed { background: #4ade80; }
+  .fi-pending   { background: #f5a623; }
+  .fi-unknown   { background: #6b7a8d; }
+  .fi-concern   { background: #e05050; }
+  .fi-text { color: var(--text); flex: 1; }
+  .fi-text strong { color: var(--text-bright); font-weight: 600; }
+  .fi-text em { color: var(--text-dim); font-style: normal; font-size: 11px; font-family: var(--mono); }
+
+  /* ── Timeline block ── */
+  .timeline { }
+  .tl-item {
+    display: flex;
+    gap: 0;
+    position: relative;
+  }
+  .tl-spine {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 32px;
+    flex-shrink: 0;
+  }
+  .tl-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--teal);
+    background: var(--bg);
+    flex-shrink: 0;
+    margin-top: 4px;
+    z-index: 1;
+  }
+  .tl-dot.confirmed { border-color: #4ade80; background: #0a2010; }
+  .tl-dot.pending   { border-color: #f5a623; background: var(--amber-bg); }
+  .tl-dot.unknown   { border-color: #445566; background: #1a1f2a; }
+  .tl-line {
+    width: 1px;
+    flex: 1;
+    background: var(--border);
+    margin-top: 2px;
+  }
+  .tl-item:last-child .tl-line { display: none; }
+  .tl-content {
+    flex: 1;
+    padding: 0 0 16px 10px;
+  }
+  .tl-time {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+    margin-bottom: 3px;
+  }
+  .tl-event {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-bright);
+    margin-bottom: 3px;
+  }
+  .tl-detail {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .tl-detail.amber { color: #c08020; }
+  .tl-detail.red   { color: #a04040; }
+
+  /* ── Open questions block ── */
+  .oq-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .oq-item {
+    background: var(--surface3);
+    border: 1px solid var(--border);
+    border-left: 3px solid #445566;
+    border-radius: 3px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .oq-item strong { display: block; color: var(--text-dim); font-size: 10px; font-family: var(--mono); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 4px; }
+
+  /* ── Caveat / footer ── */
+  .caveat-block {
+    background: var(--red-bg);
+    border: 1px solid #3a1010;
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-top: 20px;
+    font-size: 12px;
+    color: #b06060;
+    line-height: 1.6;
+  }
+  .caveat-block strong { color: #e05050; }
+
+  .sig-block {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .sig-name { font-size: 13px; font-weight: 600; color: var(--text-bright); margin-bottom: 2px; }
+  .sig-title { font-size: 11px; color: var(--text-dim); }
+  .sig-contact { font-family: var(--mono); font-size: 11px; color: var(--teal); margin-top: 6px; }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 10px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--surface2);
+    font-size: 10px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    letter-spacing: 0.05em;
+  }
+  .leg-item { display: flex; align-items: center; gap: 5px; }
+  .leg-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── Mobile ── */
+  @media (max-width: 600px) {
+    .doc-shell { padding: 12px 10px 36px; }
+    .firm-header { padding: 14px 14px 12px; }
+    .firm-logo-mark { width: 36px; height: 36px; font-size: 11px; }
+    .firm-name { font-size: 14px; }
+    .doc-classification { display: none; }
+    .meta-label { width: 80px; font-size: 9px; padding: 8px 10px; }
+    .meta-value { font-size: 11px; padding: 8px 10px; }
+    .oq-grid { grid-template-columns: 1fr; }
+    .section-body p { font-size: 12px; }
+    .tl-event { font-size: 12px; }
+    .ex-bar { font-size: 10px; padding: 6px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="ex-bar">
+  <div class="ex-dot"></div>
+  EXERCISE SCENARIO — FICTIONAL — NOT A REAL EVENT &nbsp;·&nbsp; RMISC 2026 &nbsp;·&nbsp; Facilitator-gated inject &nbsp;·&nbsp; 
+</div>
+
+<div class="doc-shell">
+
+  <!-- Firm header -->
+  <div class="firm-header">
+    <div class="firm-logo-block">
+      <div class="firm-logo-mark">VIR</div>
+      <div>
+        <div class="firm-name">Vantage Incident Response</div>
+        <div class="firm-sub">Forensic Analysis &nbsp;·&nbsp; Threat Intelligence &nbsp;·&nbsp; Recovery Advisory</div>
+      </div>
+    </div>
+    <div class="doc-classification">
+      <div class="class-badge">ATTORNEY-CLIENT PRIVILEGED</div>
+      <div class="doc-ref">REF: VIR-2026-0441 &nbsp;·&nbsp; PRELIMINARY ONLY</div>
+    </div>
+  </div>
+
+  <!-- Memo metadata -->
+  <div class="memo-meta">
+    <div class="meta-row">
+      <div class="meta-label">TO</div>
+      <div class="meta-value">Alex Reyes, CISO — Sawatch Health System</div>
+    </div>
+    <div class="meta-row">
+      <div class="meta-label">FROM</div>
+      <div class="meta-value">Marcus Webb, Engagement Lead — Vantage IR</div>
+    </div>
+    <div class="meta-row">
+      <div class="meta-label">DATE</div>
+      <div class="meta-value mono">Wednesday, Day +2 &nbsp;·&nbsp; 09:14 local / 11:14 ET</div>
+    </div>
+    <div class="meta-row">
+      <div class="meta-label">RE</div>
+      <div class="meta-value">Preliminary Forensic Findings — Sawatch Health System Security Incident</div>
+    </div>
+    <div class="meta-row">
+      <div class="meta-label">STATUS</div>
+      <div class="meta-value"><strong style="color:#f5a623;">PRELIMINARY — ACTIVE INVESTIGATION — SUBJECT TO REVISION</strong></div>
+    </div>
+  </div>
+  <div class="status-strip">
+    <span class="status-icon">⚠</span>
+    This memo reflects approximately 36 hours of forensic work. Findings are partial and should not be treated as definitive. Key questions remain open.
+  </div>
+
+  <!-- Content -->
+  <div class="content-area">
+
+    <!-- Executive summary -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <span class="section-title">Executive Summary</span>
+      </div>
+      <div class="section-body">
+        <p>As of this writing, Vantage IR has approximately 36 hours of active forensic work on Sawatch Health System's environment. We have identified a credible initial access pathway and confirmed the scope of encryption. Several critical questions remain open, including the full extent of data movement and whether attacker access has been fully eliminated.</p>
+        <p>This memo is intended to give your leadership team a structured picture of what we know, what we are investigating, and where we need decisions from you. It is <strong>not a root cause report</strong>. Final findings will follow once we have completed log recovery, credential audit, and storage integrity analysis.</p>
+        <p>We ask that this document be treated as attorney-client privileged and not shared beyond the core incident team.</p>
+      </div>
+    </div>
+
+    <!-- What we have confirmed -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <span class="section-title">Confirmed Findings</span>
+        <span class="section-tag tag-confirmed">CONFIRMED</span>
+      </div>
+      <div class="section-body">
+        <ul class="finding-list">
+          <li class="finding-item">
+            <span class="fi-bullet fi-confirmed"></span>
+            <span class="fi-text"><strong>Ransomware deployment confirmed across multiple systems.</strong> File encryption consistent with a known ransomware family affecting EHR support infrastructure, billing, scheduling, and shared file repositories. Ransom note variant is consistent with a RaaS affiliate model. <em>// Confirmed Monday 03:40</em></span>
+          </li>
+          <li class="finding-item">
+            <span class="fi-bullet fi-confirmed"></span>
+            <span class="fi-text"><strong>External access pathway identified — under active investigation.</strong> Forensic artifacts are consistent with exploitation of an externally-facing network appliance in your DMZ. We are working to confirm the specific vulnerability and establish the exact initial access timestamp. We expect to have more within 24–48 hours. <em>// Under analysis</em></span>
+          </li>
+          <li class="finding-item">
+            <span class="fi-bullet fi-confirmed"></span>
+            <span class="fi-text"><strong>Attacker presence preceded ransomware deployment by a significant period.</strong> Log artifacts and file system metadata indicate the threat actor was active in the environment well before the encryption event. We are working to establish the full dwell period. It is longer than a single session. <em>// Duration TBD — minimum days</em></span>
+          </li>
+          <li class="finding-item">
+            <span class="fi-bullet fi-confirmed"></span>
+            <span class="fi-text"><strong>Active Directory credential compromise is confirmed.</strong> At least one domain account was used in ways inconsistent with its normal owner's behavior. The access patterns associated with the "insider" flag are, in our current assessment, more consistent with a compromised credential than with deliberate insider action. We have not yet cleared this definitively. <em>// Continuing review</em></span>
+          </li>
+          <li class="finding-item">
+            <span class="fi-bullet fi-confirmed"></span>
+            <span class="fi-text"><strong>Data was moved prior to encryption.</strong> We have evidence of large-volume file access and staging activity in the days before ransomware deployment. We have not yet determined whether data was successfully exfiltrated externally or staged internally. This is a priority line of investigation. <em>// Volume and destination TBD</em></span>
+          </li>
+        </ul>
+      </div>
+      <div class="legend">
+        <div class="leg-item"><span class="leg-dot" style="background:#4ade80"></span> CONFIRMED</div>
+        <div class="leg-item"><span class="leg-dot" style="background:#f5a623"></span> PENDING</div>
+        <div class="leg-item"><span class="leg-dot" style="background:#6b7a8d"></span> UNKNOWN</div>
+        <div class="leg-item"><span class="leg-dot" style="background:#e05050"></span> CONCERN</div>
+      </div>
+    </div>
+
+    <!-- Reconstructed timeline -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">03</span>
+        <span class="section-title">Preliminary Activity Timeline</span>
+        <span class="section-tag tag-pending">PARTIAL — SUBJECT TO REVISION</span>
+      </div>
+      <div class="section-body">
+        <div class="timeline">
+
+          <div class="tl-item">
+            <div class="tl-spine"><div class="tl-dot unknown"></div><div class="tl-line"></div></div>
+            <div class="tl-content">
+              <div class="tl-time">APPROX. 3 WEEKS PRIOR TO ENCRYPTION — EXACT DATE TBD</div>
+              <div class="tl-event">Initial access — method under investigation</div>
+              <div class="tl-detail amber">External network appliance logs show anomalous authentication and session activity during this window. We are reconstructing the access path. Log retention limitations are constraining this analysis.</div>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-spine"><div class="tl-dot unknown"></div><div class="tl-line"></div></div>
+            <div class="tl-content">
+              <div class="tl-time">DWELL PERIOD — DURATION STILL BEING ESTABLISHED</div>
+              <div class="tl-event">Internal reconnaissance and credential activity</div>
+              <div class="tl-detail">Active Directory logs show authentication events from accounts outside normal usage patterns. Some log gaps are present. We are attempting to reconstruct movement between systems during this period.</div>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-spine"><div class="tl-dot pending"></div><div class="tl-line"></div></div>
+            <div class="tl-content">
+              <div class="tl-time">DAYS –14 TO –2 (ESTIMATED) — EXACT WINDOW TBD</div>
+              <div class="tl-event">Large-volume file access and probable staging activity</div>
+              <div class="tl-detail amber">File server and storage logs show elevated access volumes inconsistent with normal operations. Files accessed span clinical exports, administrative records, and finance-related repositories. We are analyzing whether this data was exfiltrated or staged for local ransomware leverage.</div>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-spine"><div class="tl-dot confirmed"></div><div class="tl-line"></div></div>
+            <div class="tl-content">
+              <div class="tl-time">MONDAY · APPROX. 03:20–03:50</div>
+              <div class="tl-event">Ransomware deployment — multi-system simultaneous encryption</div>
+              <div class="tl-detail">EHR infrastructure, billing, scheduling, shared file repositories. Deployment pattern suggests scripted, coordinated execution — consistent with attacker familiarity with the environment gained during dwell period.</div>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-spine"><div class="tl-dot confirmed"></div><div class="tl-line"></div></div>
+            <div class="tl-content">
+              <div class="tl-time">MONDAY · 04:15</div>
+              <div class="tl-event">IT team identifies storage anomalies — initially attributed to array failure</div>
+              <div class="tl-detail red">Note: The initial characterization as a storage failure may have delayed some early response actions. We note this not to assign fault but because it affects the forensic timeline — some initial remediation steps taken under the "storage failure" assumption may have altered evidence.</div>
+            </div>
+          </div>
+
+          <div class="tl-item">
+            <div class="tl-spine"><div class="tl-dot confirmed"></div><div class="tl-line"></div></div>
+            <div class="tl-content">
+              <div class="tl-time">MONDAY · 06:30</div>
+              <div class="tl-event">Ransomware confirmed — Vantage IR engaged</div>
+              <div class="tl-detail">Vantage IR team onboarded. Forensic preservation began for available log sources. Active investigation underway.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- What we do not yet know -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">04</span>
+        <span class="section-title">Critical Open Questions</span>
+        <span class="section-tag tag-unknown">UNRESOLVED</span>
+      </div>
+      <div class="section-body">
+        <p style="margin-bottom:14px;">The following questions are unresolved as of this memo. These have a direct bearing on containment confidence, restoration sequencing, and breach determination. We will update as findings develop.</p>
+        <div class="oq-grid">
+          <div class="oq-item">
+            <strong>Exfiltration scope</strong>
+            Was data successfully exfiltrated externally, or is it staged internally? Volume and target systems remain under analysis. This directly affects breach notification obligations.
+          </div>
+          <div class="oq-item">
+            <strong>Attacker persistence</strong>
+            We have not confirmed that all attacker access has been eliminated. Until identity infrastructure is validated, we cannot assert the environment is clean. Restoration before this is confirmed carries risk.
+          </div>
+          <div class="oq-item">
+            <strong>Backup integrity</strong>
+            Given the dwell period, the attacker had access to backup systems. We are analyzing whether backup jobs were altered, deleted, or targeted. Some restore points may not be reliable.
+          </div>
+          <div class="oq-item">
+            <strong>Identity infrastructure trust</strong>
+            If the attacker had domain controller access during the dwell period, a full restoration of Active Directory trust is required before enterprise systems can be considered clean. This significantly affects recovery timeline estimates.
+          </div>
+          <div class="oq-item">
+            <strong>Insider allegation status</strong>
+            Current evidence is more consistent with compromised credentials than deliberate insider action. We are continuing to review. The employee should not be treated as confirmed involved based on current data alone.
+          </div>
+          <div class="oq-item">
+            <strong>Full dwell period duration</strong>
+            We have a minimum estimate. We do not yet have a confirmed start date for attacker access. This affects scope of exposure and notification obligations.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Immediate asks -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-num">05</span>
+        <span class="section-title">Requests to Sawatch Leadership</span>
+        <span class="section-tag tag-concern">ACTION REQUIRED</span>
+      </div>
+      <div class="section-body">
+        <ul class="finding-list">
+          <li class="finding-item">
+            <span class="fi-bullet fi-concern"></span>
+            <span class="fi-text"><strong>Do not restore systems to production from recent backup copies without our sign-off.</strong> We need to validate the integrity of restore points before they are used. Recent copies may contain attacker artifacts or corrupted states.</span>
+          </li>
+          <li class="finding-item">
+            <span class="fi-bullet fi-concern"></span>
+            <span class="fi-text"><strong>Hold off on full credential resets until we have confirmed the AD scope.</strong> Partial resets in an environment where the attacker may still have persistence can alert the actor before containment is complete.</span>
+          </li>
+          <li class="finding-item">
+            <span class="fi-bullet fi-pending"></span>
+            <span class="fi-text"><strong>Preserve all VPN appliance logs, session records, and firewall logs in their current state.</strong> Do not permit patching, firmware updates, or configuration changes to affected network appliances until we have extracted forensic artifacts.</span>
+          </li>
+          <li class="finding-item">
+            <span class="fi-bullet fi-pending"></span>
+            <span class="fi-text"><strong>Confirm whether out-of-band communications channels are in use for incident coordination.</strong> If leadership is coordinating this incident through email or collaboration tools on the same identity infrastructure, we should discuss whether that channel is trustworthy.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Caveat -->
+    <div class="caveat-block">
+      <strong>Important limitation:</strong> This memo reflects approximately 36 hours of forensic analysis and should not be treated as a final or complete account of the incident. Findings are subject to revision as additional log sources are recovered and analysis continues. Do not make public statements, regulatory notifications, or legal representations based on this document without consulting legal counsel and awaiting our final findings report.
+    </div>
+
+    <!-- Signature -->
+    <div class="sig-block">
+      <div class="sig-name">Marcus Webb</div>
+      <div class="sig-title">Engagement Lead, Vantage Incident Response</div>
+      <div class="sig-contact">m.webb@vantageir.com &nbsp;·&nbsp; +1 (720) 555-0192 &nbsp;·&nbsp; Secure bridge: available on request</div>
+    </div>
+
+  </div><!-- /content-area -->
+
+  <!-- Footer disclaimer -->
+  <div style="margin-top:32px; padding-top:14px; border-top:1px solid #1e2330; font-size:10px; color:#3a4a5a; font-family:var(--mono); line-height:1.6; text-align:center;">
+    ⚠ EXERCISE SCENARIO — FICTIONAL · All persons, organizations, and events described are fabricated for training purposes · RMISC 2026
+  </div>
+
+</div><!-- /doc-shell -->
+</body>
+</html>
